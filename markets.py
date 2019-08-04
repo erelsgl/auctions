@@ -36,6 +36,9 @@ class Market:
         for i in range(len(ps)):
             self.append_trader(i, ps[i])
 
+    def has_empty_category(self)->bool:
+        return any([len(c)==0 for c in self.categories])
+
     def optimal_trade(self)->tuple:
         """
         :return: a list of procurement-sets, and a remaining market.

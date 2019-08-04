@@ -59,6 +59,8 @@ class PriceVector:
 
 def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
     """
+    Calculate the trade and prices using generalized-ascending-auction.
+    :param market:   contains a list of k categories, each containing several agents.
     :param ps_recipe:  a list of integers, one integer per category.
                        Each integer i represents the number of agents of category i
                        that should be in each procurement-set.
@@ -228,13 +230,12 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
 
 
 if __name__ == "__main__":
-    # import doctest
-    # (failures,tests) = doctest.testmod(report=True)
-    # print ("{} failures, {} tests".format(failures,tests))
+    import doctest
+    (failures,tests) = doctest.testmod(report=True)
+    print ("{} failures, {} tests".format(failures,tests))
 
     trace = print
     market = Market([AgentCategory("buyer", [9., 8., 7.]), AgentCategory("mediator", [-1., -2., -3.]), AgentCategory("seller", [-4., -3., -2.])])
-    # market = Market([AgentCategory("seller", [-4,-3]), AgentCategory("buyer", [9])])
     print(budget_balanced_ascending_auction(market, [1, 1, 1]))
     exit(0)
 
