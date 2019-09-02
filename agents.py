@@ -47,6 +47,12 @@ class AgentCategory:
         """
         return self.values[0]  # Assumes the values are sorted
 
+    def highest_agent_values(self, count:int)->list:
+        """
+        :return: the highest 'count' value of agents in this category.
+        """
+        return self.values[0:count]  # Assumes the values are sorted
+
     def lowest_agent_value(self)->float:
         """
         :return: the lowest value of an agent in this category.
@@ -59,6 +65,13 @@ class AgentCategory:
         :return:
         """
         del self.values[0]
+
+    def remove_highest_agents(self, count:int):
+        """
+        Removes the 'count' highest-valued agents from this category.
+        :return:
+        """
+        del self.values[0:count]
 
     def remove_lowest_agent(self):
         """

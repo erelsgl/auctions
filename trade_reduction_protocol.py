@@ -130,7 +130,7 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
 
     trace("\n\n### Budget-Balanced Trade Reduction\n")
     trace(market)
-    (optimal_trade, remaining_market) = market.optimal_trade()
+    (optimal_trade, remaining_market) = market.optimal_trade(ps_recipe)
     for category in remaining_market.categories:
         if len(category)==0:
             category.append(-MAX_VALUE)

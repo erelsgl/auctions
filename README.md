@@ -1,3 +1,2 @@
 # auctions
-Implementation of multilateral-auction protocols.
-
+Implementation of auction protocols for multi-lateral markets.

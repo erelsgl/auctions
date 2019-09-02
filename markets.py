@@ -53,8 +53,11 @@ class Market:
     def has_empty_category(self)->bool:
         return any([len(c)==0 for c in self.categories])
 
-    def optimal_trade(self)->tuple:
+    def optimal_trade(self, ps_recipe:list)->tuple:
         """
+        :param ps_recipe: a list that indicates the number of agents from each category that should be in each PS.
+        For example: [1,2] means 1 agent from first category (e.g. one buyer) and 2 agents from second category (e.g. two sellers).
+
         :return: a list of procurement-sets, and a remaining market.
         Each PS should contain a single agent from each category.
         Each PS should have a positive gain-from-trade.
@@ -64,28 +67,60 @@ class Market:
         >>> str(market2)
         'Traders: [buyer: [11, 9, 7, 5], seller: [-2, -4, -6, -8]]'
 
-        >>> (trade,remaining_market)=market2.optimal_trade()
+        >>> (trade,remaining_market)=market2.optimal_trade([1,1])
         >>> trade
         [(7, -6), (9, -4), (11, -2)]
         >>> str(remaining_market)
         'Traders: [buyer: [5], seller: [-8]]'
 
+        >>> (trade,remaining_market)=market2.optimal_trade([1,2])
+        >>> trade
+        [(11, -2, -4)]
+        >>> str(remaining_market)
+        'Traders: [buyer: [9, 7, 5], seller: [-6, -8]]'
+
+        >>> (trade,remaining_market)=market2.optimal_trade([2,1])
+        >>> trade
+        [(7, 5, -4), (11, 9, -2)]
+        >>> str(remaining_market)
+        'Traders: [buyer: [], seller: [-6, -8]]'
+
         >>> market3 = Market([AgentCategory("buyer", [15, 12, 9, 6]),AgentCategory("seller",[-2,-5,-8,-11]),AgentCategory("mediator", [-1, -4, -7, -10])])
-        >>> (trade,remaining_market)=market3.optimal_trade()
+        >>> (trade,remaining_market)=market3.optimal_trade([1,1,1])
         >>> trade
         [(12, -5, -4), (15, -2, -1)]
 
         >>> str(remaining_market)
         'Traders: [buyer: [9, 6], seller: [-8, -11], mediator: [-7, -10]]'
         """
+        if len(ps_recipe) != self.num_categories:
+            raise ValueError(
+                "There are {} categories but {} elements in the PS recipe".
+                    format(self.num_categories, len(ps_recipe)))
+
         trade = []
         remaining_market = self.clone()
-        for _ in range(self.size_of_smallest_category):
-            ps = [c.highest_agent_value() for c in remaining_market.categories]
-            if sum(ps) > 0:
+        while True:
+            ps = []
+            for i in range(remaining_market.num_categories):
+                recipe_i = ps_recipe[i]
+                category_i = remaining_market.categories[i]
+                # print (category_i.name)
+                if len(category_i) < recipe_i:
+                    # print(" breaking")
+                    ps = None
+                    break  # cannot create any more categories
+                highest_i = category_i.highest_agent_values(recipe_i)
+                # print(" highest_i=",highest_i)
+                ps += highest_i
+            if ps is None or sum(ps) <= 0:
+                break
+            else: # sum(ps) > 0:
                 trade.append(tuple(ps))
-                for c in remaining_market.categories:
-                    c.remove_highest_agent()
+                for i in range(remaining_market.num_categories):
+                    recipe_i = ps_recipe[i]
+                    category_i = remaining_market.categories[i]
+                    category_i.remove_highest_agents(recipe_i)
         trade.sort(key=lambda ps: sum(ps)) # sort in increasing order of GFT
         return (trade, remaining_market)
 
@@ -143,3 +178,7 @@ if __name__ == "__main__":
     import doctest
     (failures,tests) = doctest.testmod(report=True)
     print ("{} failures, {} tests".format(failures,tests))
+
+    market2 = Market([AgentCategory("buyer", [9, 7, 11, 5]), AgentCategory("seller", [-4, -6, -8, -2])])
+    (trade, remaining_market) = market2.optimal_trade([1, 1])
+
