@@ -186,24 +186,6 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
 
 
 if __name__ == "__main__":
-    # import doctest
-    # (failures,tests) = doctest.testmod(report=True)
-    # print ("{} failures, {} tests".format(failures,tests))
-
-    trace = print
-    # market = Market([AgentCategory("buyer", [9., 8., 7.]), AgentCategory("mediator", [-1., -2., -3.]), AgentCategory("seller", [-4., -3., -2.])])
-    market = Market([AgentCategory("buyer", [9.]),  AgentCategory("seller", [-4.])])
-    print(budget_balanced_trade_reduction(market, [1, 1]))
-    exit(0)
-
-
-    market1 = Market([AgentCategory("buyer", [11, 9, 7, 5]),  AgentCategory("seller", [-2, -4, -6, -6.5])])
-    market2 = Market([AgentCategory("buyer", [11, 9, 7, 5]), AgentCategory("seller",  [-2, -4, -6, -8])])
-    market3 = Market([
-        AgentCategory("buyer",    [17, 14, 13, 9, 6]),  #   Modify the middle number to see interesting phoenomena
-        AgentCategory("seller",   [-1, -4, -5, -8, -11]),
-        AgentCategory("mediator", [-1, -3, -6, -7, -10])])
-
-    # budget_balanced_trade_reduction(market1, [1,1])   # there is competition - everything is fine. All PS in the optimal trade enter the actual trade, with the same price vector (6.5, -6.5).
-    # budget_balanced_trade_reduction(market2, [1,1])   # no competition - reduction required
-    budget_balanced_trade_reduction(market3, [1,1])     # no competition - reduction required
+    import doctest
+    (failures,tests) = doctest.testmod(report=True)
+    print ("{} failures, {} tests".format(failures,tests))

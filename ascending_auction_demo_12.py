@@ -14,6 +14,18 @@ from ascending_auction_protocol import budget_balanced_ascending_auction
 
 ascending_auction_protocol.trace = print
 
+
+# RUNNING EXAMPLE FROM THE PAPER
+
+market = Market([
+    AgentCategory("buyer", [17, 14, 13, 9, 6]),
+    AgentCategory("seller", [-1, -2, -3, -4, -5, -7, -8, -10, -11]),
+])
+
+budget_balanced_ascending_auction(market, [1,2])
+
+# OTHER EXAMPLES
+
 market = Market([
     AgentCategory("buyer", [20., 18., 16., 14.]),
     AgentCategory("seller", [-2., -4., -6., -8.]),
