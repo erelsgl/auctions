@@ -1,5 +1,13 @@
 #!python3
 
+"""
+function budget_balanced_trade_reduction
+Implementation of a budget-balanced trade-reduction protocol for a multi-lateral market.
+
+Since:  2019-08
+"""
+
+
 from agents import AgentCategory
 from markets import Market
 from trade import Trade, TradeWithSinglePrice
@@ -23,44 +31,53 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [buyer: [9.0], seller: [-4.0]]
     No trade
+
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [buyer: [9.0, 8.0], seller: [-4.0]]
     No trade
+
     >>> market = Market([AgentCategory("seller", [-4.]), AgentCategory("buyer", [9.,8.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [seller: [-4.0], buyer: [9.0, 8.0]]
     seller: [-4.0]: all 1 agents trade and pay -8.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
+
     >>> market = Market([AgentCategory("seller", [-4.,-3.]), AgentCategory("buyer", [9.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [seller: [-3.0, -4.0], buyer: [9.0]]
     No trade
+
     >>> market = Market([AgentCategory("buyer", [9.]), AgentCategory("seller", [-4.,-3.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
     buyer: [9.0]: all 1 agents trade and pay 4.0
     seller: [-3.0]: all 1 agents trade and pay -4.0
+
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.,-3.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [buyer: [9.0, 8.0], seller: [-3.0, -4.0]]
     buyer: [9.0]: all 1 agents trade and pay 8.0
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -8.0
+
     >>> market = Market([AgentCategory("seller", [-4.,-3.]), AgentCategory("buyer", [9.,8.])])
     >>> print(budget_balanced_trade_reduction(market, [1,1]))
     seller: [-3.0]: all 1 agents trade and pay -4.0
     buyer: [9.0, 8.0]: random 1 out of 2 agents trade and pay 4.0
+
     >>> # ALL POSITIVE VALUES
     >>> market = Market([AgentCategory("buyer1", [4.,3.]), AgentCategory("buyer2", [9.,8.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [buyer1: [4.0, 3.0], buyer2: [9.0, 8.0]]
     buyer1: [4.0]: all 1 agents trade and pay 3.0
     buyer2: [9.0, 8.0]: random 1 out of 2 agents trade and pay -3.0
+
     >>> # ALL NEGATIVE VALUES
     >>> market = Market([AgentCategory("seller1", [-4.,-3.]), AgentCategory("seller2", [-9.,-8.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1]))
     Traders: [seller1: [-3.0, -4.0], seller2: [-8.0, -9.0]]
     No trade
+
     >>>
     >>> # ONE BUYER, ONE SELLER, ONE MEDIATOR
     >>> market = Market([AgentCategory("seller", [-4.,-3.]), AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.])])
@@ -69,36 +86,42 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
     seller: [-3.0]: all 1 agents trade and pay -4.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
     mediator: [-1.0, -2.0]: random 1 out of 2 agents trade and pay -4.0
+
     >>> market = Market([AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.]), AgentCategory("seller", [-4.,-3.,-10.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1,1]))
     Traders: [buyer: [9.0, 8.0], mediator: [-1.0, -2.0], seller: [-3.0, -4.0, -10.0]]
     buyer: [9.0]: all 1 agents trade and pay 8.0
     mediator: [-1.0]: all 1 agents trade and pay -2.0
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -6.0
+
     >>> market = Market([AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.]), AgentCategory("seller", [-4.,-3.,-5.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1,1]))
     Traders: [buyer: [9.0, 8.0], mediator: [-1.0, -2.0], seller: [-3.0, -4.0, -5.0]]
     buyer: [9.0]: all 1 agents trade and pay 8.0
     mediator: [-1.0, -2.0]: random 1 out of 2 agents trade and pay -3.0
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -5.0
+
     >>> market = Market([AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.]), AgentCategory("seller", [-4.,-3.,-2.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1,1]))
     Traders: [buyer: [9.0, 8.0], mediator: [-1.0, -2.0], seller: [-2.0, -3.0, -4.0]]
     buyer: [9.0]: all 1 agents trade and pay 8.0
     mediator: [-1.0, -2.0]: random 1 out of 2 agents trade and pay -4.0
     seller: [-2.0, -3.0]: random 1 out of 2 agents trade and pay -4.0
+
     >>> market = Market([AgentCategory("buyer", [9.,8.,7.]), AgentCategory("mediator", [-1.,-2.,-3.]), AgentCategory("seller", [-4.,-3.,-2.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1,1]))
     Traders: [buyer: [9.0, 8.0, 7.0], mediator: [-1.0, -2.0, -3.0], seller: [-2.0, -3.0, -4.0]]
     buyer: [9.0, 8.0]: all 2 agents trade and pay 7.0
     mediator: [-1.0, -2.0]: all 2 agents trade and pay -3.0
     seller: [-2.0, -3.0]: all 2 agents trade and pay -4.0
+
     >>> market = Market([AgentCategory("buyer", [9.,8.,4.]), AgentCategory("mediator", [-1.,-2.,-3.]), AgentCategory("seller", [-4.,-3.,-2.])])
     >>> print(market); print(budget_balanced_trade_reduction(market, [1,1,1]))
     Traders: [buyer: [9.0, 8.0, 4.0], mediator: [-1.0, -2.0, -3.0], seller: [-2.0, -3.0, -4.0]]
     buyer: [9.0, 8.0]: all 2 agents trade and pay 7.0
     mediator: [-1.0, -2.0]: all 2 agents trade and pay -3.0
     seller: [-2.0, -3.0]: all 2 agents trade and pay -4.0
+
     """
     if len(ps_recipe) != market.num_categories:
         raise ValueError(

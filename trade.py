@@ -1,7 +1,20 @@
 #!python3
 
+
+"""
+class TradeWithSinglePrice
+
+Represents a set of deals done in a multi-lateral market.
+
+See also: Market
+Since: 2019-08
+"""
+
+
+
 from agents import AgentCategory
 import math
+
 
 class TradeWithSinglePrice:
     """

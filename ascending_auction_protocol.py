@@ -1,9 +1,9 @@
 #!python3
 
 """
+function budget_balanced_ascending_auction
 Implementation of a multiple-clock strongly-budget-balanced ascending auction for a multi-lateral market.
 
-Author: Erel Segal-Halevi
 Since:  2019-08
 """
 
@@ -197,6 +197,13 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
     Traders: [seller: [-1.0, -2.0, -3.0, -4.0], buyer: [9.0, 8.0]]
     seller: [-1.0, -2.0]: all 2 agents trade and pay -3.0
     buyer: [9.0, 8.0]: random 1 out of 2 agents trade and pay 6.0
+
+    >>> # PRICE CROSSES ZERO AT FIRST PHASE
+    >>> market = Market([AgentCategory("seller", [-3.,-2.,-1.]), AgentCategory("buyer", list(range(20)))])
+    >>> print(market); print(budget_balanced_ascending_auction(market, [2,1]))
+    Traders: [seller: [-1.0, -2.0, -3.0], buyer: [19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]]
+    seller: [-1.0, -2.0, -3.0]: random 2 out of 3 agents trade and pay -9.0
+    buyer: [19]: all 1 agents trade and pay 18
 
     """
     if len(ps_recipe) != market.num_categories:

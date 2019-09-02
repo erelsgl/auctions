@@ -1,5 +1,13 @@
 #!python3
 
+"""
+class AgentCategory
+
+Represents a category of traders in a multi-lateral market,
+such as "buyers", "sellers", etc.
+
+Since: 2019-08
+"""
 
 class AgentCategory:
     """
@@ -12,7 +20,7 @@ class AgentCategory:
     """
     def __init__(self, name:str, values:list):
         self.name = name
-        self.values = values
+        self.values = list(values)
         self.values.sort(reverse=True)
 
     def __len__(self):
@@ -60,4 +68,10 @@ class AgentCategory:
         del self.values[-1]
 
     def clone(self):
-        return AgentCategory(self.name, list(self.values))
+        return AgentCategory(self.name, self.values)
+
+
+if __name__ == "__main__":
+    import doctest
+    (failures,tests) = doctest.testmod(report=True)
+    print ("{} failures, {} tests".format(failures,tests))

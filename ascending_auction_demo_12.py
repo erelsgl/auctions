@@ -4,7 +4,6 @@
 Demonstration of a multiple-clock strongly-budget-balanced ascending auction
 for a multi-lateral market with one buyer per two sellers (type vector: 1,2)
 
-Author: Erel Segal-Halevi
 Since:  2019-08
 """
 
@@ -20,11 +19,8 @@ market = Market([
     AgentCategory("seller", [-2., -4., -6., -8.]),
 ])
 
-budget_balanced_ascending_auction(market, [1,2])  # 1 buyer,  2 sellers
-# Here, the final trade involves 1 buyer and 4 sellers (so 2 sellers should be selected at random).
-
-budget_balanced_ascending_auction(market, [2,1])  # 2 buyers,  1 seller
-# Here, the final trade involves 4 buyers and 2 sellers (so no lottery is needed).
+budget_balanced_ascending_auction(market, [1,2])  # Here, the final trade involves 1 buyer and 4 sellers (so 2 sellers should be selected at random).
+budget_balanced_ascending_auction(market, [2,1])  # Here, the final trade involves 4 buyers and 2 sellers (so no lottery is needed).
 
 
 market = Market([
@@ -32,17 +28,19 @@ market = Market([
     AgentCategory("seller", [-2., -4., -6., -8.]),
 ])
 
-budget_balanced_ascending_auction(market, [1,2])  # 1 buyer,  2 sellers
-# Here, there is no trade at all
-
-budget_balanced_ascending_auction(market, [2,1])  # 2 buyers,  1 seller
-# Here, the final trade involves 4 buyers and 2 sellers (so no lottery is needed).
-
+budget_balanced_ascending_auction(market, [1,2])  # Here, there is no trade at all
+budget_balanced_ascending_auction(market, [2,1])  # Here, the final trade involves 4 buyers and 2 sellers (so no lottery is needed).
 
 market = Market([
     AgentCategory("buyer", [13., 8., 6., 4.]),
     AgentCategory("seller", [-2., -4., -6., -8.]),
 ])
 
-budget_balanced_ascending_auction(market, [1,2])  # 1 buyer,  2 sellers
-# Here, the final trade involves 1 buyer and 2 sellers (so no lottery is needed).
+budget_balanced_ascending_auction(market, [1,2])  # Here, the final trade involves 1 buyer and 2 sellers (so no lottery is needed).
+
+market = Market([
+    AgentCategory("buyer", [23., 18., 16., 14., 12.]),
+    AgentCategory("seller", range(-20,-1)),
+])
+
+budget_balanced_ascending_auction(market, [2,1])  # Here, the final trade involves 5 buyers and 2 sellers, so we have to pick 4 buyers at random.

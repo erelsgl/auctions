@@ -1,10 +1,24 @@
 #!python3
 
+"""
+class Market
+
+Represents a multi-lateral market, that contains several agent categories.
+
+See also: AgentCategory
+Since: 2019-08
+"""
+
+from agents import AgentCategory
 
 class Market:
     """
     Represents a market with several categories of traders,
     and several traders from each category.
+
+    >>> market = Market([AgentCategory("buyer", [9, 7, 11, 5]), AgentCategory("seller",[-4,-6,-8,-2])])
+    >>> str(market)
+    'Traders: [buyer: [11, 9, 7, 5], seller: [-2, -4, -6, -8]]'
     """
 
     def __init__(self, categories:list):
@@ -49,15 +63,18 @@ class Market:
         >>> market2 = Market([AgentCategory("buyer", [9, 7, 11, 5]), AgentCategory("seller",[-4,-6,-8,-2])])
         >>> str(market2)
         'Traders: [buyer: [11, 9, 7, 5], seller: [-2, -4, -6, -8]]'
+
         >>> (trade,remaining_market)=market2.optimal_trade()
         >>> trade
         [(7, -6), (9, -4), (11, -2)]
         >>> str(remaining_market)
         'Traders: [buyer: [5], seller: [-8]]'
+
         >>> market3 = Market([AgentCategory("buyer", [15, 12, 9, 6]),AgentCategory("seller",[-2,-5,-8,-11]),AgentCategory("mediator", [-1, -4, -7, -10])])
         >>> (trade,remaining_market)=market3.optimal_trade()
         >>> trade
         [(12, -5, -4), (15, -2, -1)]
+
         >>> str(remaining_market)
         'Traders: [buyer: [9, 6], seller: [-8, -11], mediator: [-7, -10]]'
         """
@@ -121,3 +138,8 @@ class Market:
         return Market([c.clone() for c in self.categories])
 
 
+
+if __name__ == "__main__":
+    import doctest
+    (failures,tests) = doctest.testmod(report=True)
+    print ("{} failures, {} tests".format(failures,tests))
