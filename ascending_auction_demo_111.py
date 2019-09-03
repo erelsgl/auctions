@@ -16,6 +16,41 @@ ascending_auction_protocol.trace = print
 
 ps_recipe = [1,1,1]
 
+print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,1,1)")
+
+# Price stops between buyers, k=3:
+market = Market([
+    AgentCategory("buyer",    [17, 14, 13, 9, 6]),
+    AgentCategory("seller",   [-1, -4, -5, -5.5, -11]),
+    AgentCategory("mediator", [-1, -3, -6, -7, -10])])
+print(budget_balanced_ascending_auction(market, ps_recipe))
+
+# Price stops between sellers, k=3:
+market = Market([
+    AgentCategory("buyer",    [17, 14, 13, 9, 6]),
+    AgentCategory("seller",   [-1, -4, -5, -8, -11]),
+    AgentCategory("mediator", [-1, -3, -6, -7, -10])])
+print(budget_balanced_ascending_auction(market, ps_recipe))
+
+# Price stops between mediators, k=3:
+market = Market([
+    AgentCategory("buyer",    [17, 14, 13, 9, 6]),
+    AgentCategory("seller",   [-1, -4, -6.5, -8, -11]),
+    AgentCategory("mediator", [-1, -3, -6, -7, -10])])
+print(budget_balanced_ascending_auction(market, ps_recipe))
+
+# Price stops between buyers, k=2:
+market = Market([
+    AgentCategory("buyer",    [17, 14, 13, 9, 6]),
+    AgentCategory("seller",   [-1, -4, -7.5, -8, -11]),
+    AgentCategory("mediator", [-1, -3, -6, -7, -10])])
+print(budget_balanced_ascending_auction(market, ps_recipe))
+
+exit(1)
+
+
+
+# OTHER EXAMPLES
 
 # Here, the final trade involves 2 buyers and 2 mediators and 3 sellers - seller-lottery is needed.
 market = Market([

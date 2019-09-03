@@ -16,11 +16,11 @@ from trade_reduction_protocol import budget_balanced_trade_reduction
 trade_reduction_protocol.trace = print
 
 
-# RUNNING EXAMPLE FROM THE PAPER
+print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,1,1)")
 
 market = Market([
     AgentCategory("buyer",    [17, 14, 13, 9, 6]),  #   Modify the middle number to see interesting phoenomena
     AgentCategory("seller",   [-1, -4, -5, -8, -11]),
     AgentCategory("mediator", [-1, -3, -6, -7, -10])])
 
-budget_balanced_trade_reduction(market, [1,1,1])
+print(budget_balanced_trade_reduction(market, [1,1,1]))

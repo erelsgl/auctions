@@ -128,7 +128,7 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
             "There are {} categories but {} elements in the PS recipe".
                 format(market.num_categories, len(ps_recipe)))
 
-    trace("\n\n### Budget-Balanced Trade Reduction\n")
+    trace("\n#### Budget-Balanced Trade Reduction\n")
     trace(market)
     (optimal_trade, remaining_market) = market.optimal_trade(ps_recipe)
     for category in remaining_market.categories:

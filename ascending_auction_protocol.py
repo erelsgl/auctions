@@ -211,8 +211,10 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
             "There are {} categories but {} elements in the PS recipe".
                 format(market.num_categories, len(ps_recipe)))
 
-    trace("\n\n#### Budget-Balanced Ascending Auction\n")
+    trace("\n#### Budget-Balanced Ascending Auction\n")
     trace(market)
+    optimal_trade = market.optimal_trade(ps_recipe)[0]
+    trace("For comparison, the optimal trade has {} deals: {}".format(len(optimal_trade),optimal_trade), "\n")
     trace("Procurement-set recipe: {}".format(ps_recipe))
 
     remaining_market = market.clone()
