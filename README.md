@@ -24,3 +24,4 @@ Lemonade-market auction mentioned in Section 5:
 
 The other files contain some additional examples.
 
+Example results can be found in the `results/` folder.
