@@ -1,0 +1,192 @@
+###### k=3, price-increase stops before first seller
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [seller: [-1, -2, -3, -4, -5, -8, -10, -11], buyer: [20, 19, 18, 17, 9, 6]]
+For comparison, the optimal trade has 3 deals: [(-5, -8, 18), (-3, -4, 19), (-1, -2, 20)]
+
+Procurement-set recipe: [2, 1]
+
+## Phase 1: balancing the number of PS to 4
+seller: price is now -1000000, 8 agents remain, 4 PS supported
+buyer: price increases to 6
+buyer: 5 agents remain
+buyer: price increases to 9
+buyer: 4 agents remain
+buyer: price is now 9, 4 agents remain, 4 PS supported
+
+## Phase 2: balancing the price
+seller: 4 PS supported
+buyer: 4 PS supported
+seller: price increases to -11
+seller: 7 agents remain
+seller: price increases to -10
+seller: 6 agents remain
+seller: 3 PS supported
+buyer: price increases to 17
+buyer: 3 agents remain
+buyer: 3 PS supported
+seller: while increasing price towards -8, stopped at -8.5 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [-8.5, 17]
+Traders: [seller: [-1, -2, -3, -4, -5, -8], buyer: [20, 19, 18]]
+seller: [-1, -2, -3, -4, -5, -8]: all 6 agents trade and pay -8.5
+buyer: [20, 19, 18]: all 3 agents trade and pay 17
+
+
+###### k=3, price-increase stops before second seller
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [seller: [-1, -2, -3, -4, -5, -8, -10, -11], buyer: [17, 15, 14, 11, 9, 6]]
+For comparison, the optimal trade has 3 deals: [(-5, -8, 14), (-3, -4, 15), (-1, -2, 17)]
+
+Procurement-set recipe: [2, 1]
+
+## Phase 1: balancing the number of PS to 4
+seller: price is now -1000000, 8 agents remain, 4 PS supported
+buyer: price increases to 6
+buyer: 5 agents remain
+buyer: price increases to 9
+buyer: 4 agents remain
+buyer: price is now 9, 4 agents remain, 4 PS supported
+
+## Phase 2: balancing the price
+seller: 4 PS supported
+buyer: 4 PS supported
+seller: price increases to -11
+seller: 7 agents remain
+seller: price increases to -10
+seller: 6 agents remain
+seller: 3 PS supported
+buyer: price increases to 11
+buyer: 3 agents remain
+buyer: 3 PS supported
+seller: price increases to -8
+seller: 5 agents remain
+seller: while increasing price towards -5, stopped at -5.5 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [-5.5, 11]
+Traders: [seller: [-1, -2, -3, -4, -5], buyer: [17, 15, 14]]
+seller: [-1, -2, -3, -4, -5]: random 4 out of 5 agents trade and pay -5.5
+buyer: [17, 15, 14]: random 2 out of 3 agents trade and pay 11
+
+
+###### k=2!!, price-increase stops before second seller
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [seller: [-1, -2, -3, -4, -5, -8, -10, -11], buyer: [17, 15, 12, 11, 9, 6]]
+For comparison, the optimal trade has 2 deals: [(-3, -4, 15), (-1, -2, 17)]
+
+Procurement-set recipe: [2, 1]
+
+## Phase 1: balancing the number of PS to 4
+seller: price is now -1000000, 8 agents remain, 4 PS supported
+buyer: price increases to 6
+buyer: 5 agents remain
+buyer: price increases to 9
+buyer: 4 agents remain
+buyer: price is now 9, 4 agents remain, 4 PS supported
+
+## Phase 2: balancing the price
+seller: 4 PS supported
+buyer: 4 PS supported
+seller: price increases to -11
+seller: 7 agents remain
+seller: price increases to -10
+seller: 6 agents remain
+seller: 3 PS supported
+buyer: price increases to 11
+buyer: 3 agents remain
+buyer: 3 PS supported
+seller: price increases to -8
+seller: 5 agents remain
+seller: while increasing price towards -5, stopped at -5.5 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [-5.5, 11]
+Traders: [seller: [-1, -2, -3, -4, -5], buyer: [17, 15, 12]]
+seller: [-1, -2, -3, -4, -5]: random 4 out of 5 agents trade and pay -5.5
+buyer: [17, 15, 12]: random 2 out of 3 agents trade and pay 11
+
+
+###### k=3, price-increase stops before buyer
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [seller: [-1, -2, -3, -4, -5, -8, -10, -11], buyer: [17, 15, 14, 9.5, 9, 6]]
+For comparison, the optimal trade has 3 deals: [(-5, -8, 14), (-3, -4, 15), (-1, -2, 17)]
+
+Procurement-set recipe: [2, 1]
+
+## Phase 1: balancing the number of PS to 4
+seller: price is now -1000000, 8 agents remain, 4 PS supported
+buyer: price increases to 6
+buyer: 5 agents remain
+buyer: price increases to 9
+buyer: 4 agents remain
+buyer: price is now 9, 4 agents remain, 4 PS supported
+
+## Phase 2: balancing the price
+seller: 4 PS supported
+buyer: 4 PS supported
+seller: price increases to -11
+seller: 7 agents remain
+seller: price increases to -10
+seller: 6 agents remain
+seller: 3 PS supported
+buyer: price increases to 9.5
+buyer: 3 agents remain
+buyer: 3 PS supported
+seller: price increases to -8
+seller: 5 agents remain
+seller: price increases to -5
+seller: 4 agents remain
+seller: 2 PS supported
+buyer: while increasing price towards 14, stopped at 10.0 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [-5, 10.0]
+Traders: [seller: [-1, -2, -3, -4], buyer: [17, 15, 14]]
+seller: [-1, -2, -3, -4]: all 4 agents trade and pay -5
+buyer: [17, 15, 14]: random 2 out of 3 agents trade and pay 10.0
+
+
+###### k=2!!, price-increase stops before buyer
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [seller: [-1, -2, -3, -4, -5, -8, -10, -11], buyer: [17, 15, 12, 9.5, 9, 6]]
+For comparison, the optimal trade has 2 deals: [(-3, -4, 15), (-1, -2, 17)]
+
+Procurement-set recipe: [2, 1]
+
+## Phase 1: balancing the number of PS to 4
+seller: price is now -1000000, 8 agents remain, 4 PS supported
+buyer: price increases to 6
+buyer: 5 agents remain
+buyer: price increases to 9
+buyer: 4 agents remain
+buyer: price is now 9, 4 agents remain, 4 PS supported
+
+## Phase 2: balancing the price
+seller: 4 PS supported
+buyer: 4 PS supported
+seller: price increases to -11
+seller: 7 agents remain
+seller: price increases to -10
+seller: 6 agents remain
+seller: 3 PS supported
+buyer: price increases to 9.5
+buyer: 3 agents remain
+buyer: 3 PS supported
+seller: price increases to -8
+seller: 5 agents remain
+seller: price increases to -5
+seller: 4 agents remain
+seller: 2 PS supported
+buyer: while increasing price towards 12, stopped at 10.0 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [-5, 10.0]
+Traders: [seller: [-1, -2, -3, -4], buyer: [17, 15, 12]]
+seller: [-1, -2, -3, -4]: all 4 agents trade and pay -5
+buyer: [17, 15, 12]: random 2 out of 3 agents trade and pay 10.0

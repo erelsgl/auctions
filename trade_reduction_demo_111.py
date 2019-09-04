@@ -15,12 +15,66 @@ from trade_reduction_protocol import budget_balanced_trade_reduction
 
 trade_reduction_protocol.trace = print
 
+print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,1,1): buyers-sellers-mediators")
 
-print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,1,1)")
+buyers = [17, 14, 13, 9, 6]
+sellers = [-1, -4, -5, -8, -11]
+mediators = [-1, -3, -4, -7, -10]
+recipe = [1,1,1]
 
 market = Market([
-    AgentCategory("buyer",    [17, 14, 13, 9, 6]),  #   Modify the middle number to see interesting phoenomena
-    AgentCategory("seller",   [-1, -4, -5, -8, -11]),
-    AgentCategory("mediator", [-1, -3, -6, -7, -10])])
+    AgentCategory("buyer",    buyers),
+    AgentCategory("seller",   sellers),
+    AgentCategory("mediator", mediators),
+])
+print(budget_balanced_trade_reduction(market, recipe))
 
-print(budget_balanced_trade_reduction(market, [1,1,1]))
+
+print("\n\n###### SAME EXAMPLE WITH DIFFERENT ORDER: buyers-mediators-sellers")
+market = Market([
+    AgentCategory("buyer",    buyers),
+    AgentCategory("mediator", mediators),
+    AgentCategory("seller",   sellers),
+])
+print(budget_balanced_trade_reduction(market, recipe))
+
+
+print("\n\n###### SAME EXAMPLE WITH DIFFERENT ORDER: sellers-buyers-mediators")
+market = Market([
+    AgentCategory("seller",   sellers),
+    AgentCategory("buyer",    buyers),
+    AgentCategory("mediator", mediators),
+])
+print(budget_balanced_trade_reduction(market, recipe))
+
+
+
+print("\n\n###### SAME EXAMPLE WITH DIFFERENT ORDER: sellers-mediators-buyers")
+market = Market([
+    AgentCategory("seller",   sellers),
+    AgentCategory("mediator", mediators),
+    AgentCategory("buyer", buyers),
+])
+print(budget_balanced_trade_reduction(market, recipe))
+
+
+print("\n\n###### SAME EXAMPLE WITH DIFFERENT ORDER: mediators-sellers-buyers")
+market = Market([
+    AgentCategory("mediator", mediators),
+    AgentCategory("seller",   sellers),
+    AgentCategory("buyer", buyers),
+])
+print(budget_balanced_trade_reduction(market, recipe))
+
+
+print("\n\n###### SAME EXAMPLE WITH DIFFERENT ORDER: mediators-buyers-sellers")
+market = Market([
+    AgentCategory("mediator", mediators),
+    AgentCategory("buyer", buyers),
+    AgentCategory("seller",   sellers),
+])
+print(budget_balanced_trade_reduction(market, recipe))
+
+
+
+

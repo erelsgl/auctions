@@ -228,7 +228,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
                 len(category) / ps_recipe[i])  # num of potential PS that can be supported by this category
 
         min_potential_ps = min(potential_ps)
-        trace("\n## Phase 1: balancing the number of PS to {}".format(min_potential_ps))
+        trace("\n## Step 1: balancing the number of PS to {}".format(min_potential_ps))
         for i in range(remaining_market.num_categories):
             category = remaining_market.categories[i]
             if len(category)==0:  raise EmptyCategoryException()
@@ -240,7 +240,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
             potential_ps[i] = math.floor(len(category) / ps_recipe[i])
             trace("{}: price is now {}, {} agents remain, {} PS supported".format(category.name, prices[i], len(category), potential_ps[i]))
 
-        trace("\n## Phase 2: balancing the price")
+        trace("\n## Step 2: balancing the price")
         ps_count = min_potential_ps
         while True:
             for i in range(remaining_market.num_categories):

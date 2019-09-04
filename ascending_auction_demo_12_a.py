@@ -1,8 +1,8 @@
 #!python3
 
 """
-Demonstration of a multiple-clock strongly-budget-balanced ascending auction
-for a multi-lateral market with one buyer per two sellers (type vector: 1,2)
+An additional example of a multiple-clock strongly-budget-balanced ascending auction
+for a multi-lateral market with one buyer per two sellers (recipe: 1,2)
 
 Since:  2019-08
 """

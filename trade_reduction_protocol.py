@@ -136,6 +136,10 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
             category.append(-MAX_VALUE)
     trace("Optimal trade, by increasing GFT, is: {}".format(optimal_trade))
     trace("Remaining market is: {}".format(remaining_market))
+
+    if any(r!=1 for r in ps_recipe):
+        raise ValueError("Currently, the trade-reduction protocol supports only recipes of ones; {} was given".format(ps_recipe))
+
     actual_trade = Trade(market.num_categories)
     actual_traders = [None] * market.num_categories
     for i in range(market.num_categories):
@@ -179,9 +183,10 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
                 if ps[i] is not None:
                     actual_traders[i].append(ps[i])
 
-    trace("\nActual trade is:\n{}".format(actual_trade))
+    # trace("\nActual trade is:\n{}".format(actual_trade))
     # return actual_trade
 
+    trace("\n")
     return TradeWithSinglePrice(actual_traders, ps_recipe, latest_prices)
 
 

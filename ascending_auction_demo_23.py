@@ -2,7 +2,7 @@
 
 """
 Demonstration of a multiple-clock strongly-budget-balanced ascending auction
-for a multi-lateral market with two buyers per three sellers (type vector: 2,3)
+for a multi-lateral market with two buyers per three sellers (recipe: 2,3)
 
 Since:  2019-08
 """
