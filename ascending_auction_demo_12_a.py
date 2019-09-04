@@ -16,8 +16,8 @@ ascending_auction_protocol.trace = print
 
 print("\n\n###### k=3, price-increase stops before first seller")
 market = Market([
-    AgentCategory("seller", [-1, -2, -3, -4, -5, -6, -10, -11]),
-    AgentCategory("buyer", [17, 15, 14, 13, 9, 6]),
+    AgentCategory("seller", [-1, -2, -3, -4, -5, -8, -10, -11]),
+    AgentCategory("buyer", [20, 19, 18, 17, 9, 6]),
 ])
 print(budget_balanced_ascending_auction(market, [2,1]))
 
@@ -28,9 +28,23 @@ market = Market([
 ])
 print(budget_balanced_ascending_auction(market, [2,1]))
 
-print("\n\n###### k=2, price-increase stops before second seller")
+print("\n\n###### k=2!!, price-increase stops before second seller")
 market = Market([
     AgentCategory("seller", [-1, -2, -3, -4, -5, -8, -10, -11]),
     AgentCategory("buyer", [17, 15, 12, 11, 9, 6]),
+])
+print(budget_balanced_ascending_auction(market, [2,1]))
+
+print("\n\n###### k=3, price-increase stops before buyer")
+market = Market([
+    AgentCategory("seller", [-1, -2, -3, -4, -5, -8, -10, -11]),
+    AgentCategory("buyer", [17, 15, 14, 9.5, 9, 6]),
+])
+print(budget_balanced_ascending_auction(market, [2,1]))
+
+print("\n\n###### k=2!!, price-increase stops before buyer")
+market = Market([
+    AgentCategory("seller", [-1, -2, -3, -4, -5, -8, -10, -11]),
+    AgentCategory("buyer", [17, 15, 12, 9.5, 9, 6]),
 ])
 print(budget_balanced_ascending_auction(market, [2,1]))

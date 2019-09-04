@@ -1,0 +1,94 @@
+###### LEMON MARKET
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [virtual-lemon-buyer: [11, 8, 1], picker: [-3, -6, -7]]
+For comparison, the optimal trade has 2 deals: [(8, -6), (11, -3)]
+
+Procurement-set recipe: [1, 1]
+
+## Phase 1: balancing the number of PS to 3
+virtual-lemon-buyer: price is now -1000000, 3 agents remain, 3 PS supported
+picker: price is now -1000000, 3 agents remain, 3 PS supported
+
+## Phase 2: balancing the price
+virtual-lemon-buyer: 3 PS supported
+picker: 3 PS supported
+virtual-lemon-buyer: price increases to 1
+virtual-lemon-buyer: 2 agents remain
+virtual-lemon-buyer: 2 PS supported
+picker: price increases to -7
+picker: 2 agents remain
+picker: 2 PS supported
+virtual-lemon-buyer: while increasing price towards 8, stopped at 7.0 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [7.0, -7]
+Traders: [virtual-lemon-buyer: [11, 8], picker: [-3, -6]]
+virtual-lemon-buyer: [11, 8]: all 2 agents trade and pay 7.0
+picker: [-3, -6]: all 2 agents trade and pay -7
+
+
+###### SQUEEZING MARKET
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [virtual-squeezing-buyer: [9, 5, 0], squeezer: [-1, -3, -6]]
+For comparison, the optimal trade has 2 deals: [(5, -3), (9, -1)]
+
+Procurement-set recipe: [1, 1]
+
+## Phase 1: balancing the number of PS to 3
+virtual-squeezing-buyer: price is now -1000000, 3 agents remain, 3 PS supported
+squeezer: price is now -1000000, 3 agents remain, 3 PS supported
+
+## Phase 2: balancing the price
+virtual-squeezing-buyer: 3 PS supported
+squeezer: 3 PS supported
+virtual-squeezing-buyer: price increases to 0
+virtual-squeezing-buyer: 2 agents remain
+virtual-squeezing-buyer: 2 PS supported
+squeezer: price increases to -6
+squeezer: 2 agents remain
+squeezer: 2 PS supported
+virtual-squeezing-buyer: price increases to 5
+virtual-squeezing-buyer: 1 agents remain
+virtual-squeezing-buyer: 1 PS supported
+squeezer: while increasing price towards -3, stopped at -5.0 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [5, -5.0]
+Traders: [virtual-squeezing-buyer: [9], squeezer: [-1, -3]]
+virtual-squeezing-buyer: [9]: all 1 agents trade and pay 5
+squeezer: [-1, -3]: random 1 out of 2 agents trade and pay -5.0
+
+
+###### JUICE MARKET
+
+#### Budget-Balanced Ascending Auction
+
+Traders: [drinker: [12, 11, 7], virtual-juice-seller: [-4, -9, -13]]
+For comparison, the optimal trade has 2 deals: [(11, -9), (12, -4)]
+
+Procurement-set recipe: [1, 1]
+
+## Phase 1: balancing the number of PS to 3
+drinker: price is now -1000000, 3 agents remain, 3 PS supported
+virtual-juice-seller: price is now -1000000, 3 agents remain, 3 PS supported
+
+## Phase 2: balancing the price
+drinker: 3 PS supported
+virtual-juice-seller: 3 PS supported
+drinker: price increases to 7
+drinker: 2 agents remain
+drinker: 2 PS supported
+virtual-juice-seller: price increases to -13
+virtual-juice-seller: 2 agents remain
+virtual-juice-seller: 2 PS supported
+drinker: price increases to 11
+drinker: 1 agents remain
+drinker: 1 PS supported
+virtual-juice-seller: while increasing price towards -9, stopped at -11.0 where the price-sum crossed zero
+
+Price crossed zero. Final price vector: [11, -11.0]
+Traders: [drinker: [12], virtual-juice-seller: [-4, -9]]
+drinker: [12]: all 1 agents trade and pay 11
+virtual-juice-seller: [-4, -9]: random 1 out of 2 agents trade and pay -11.0
