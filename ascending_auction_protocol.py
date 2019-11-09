@@ -15,6 +15,9 @@ import math
 
 trace = lambda *x: None  # To enable tracing, set trace=print
 
+def set_trace(func):
+    trace = func
+
 MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
 
 
@@ -67,7 +70,7 @@ class PriceVector:
 
 
 
-def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
+def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterations=999999999):
     """
     Calculate the trade and prices using generalized-ascending-auction.
     :param market:   contains a list of k categories, each containing several agents.
@@ -205,7 +208,17 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
     seller: [-1.0, -2.0, -3.0]: random 2 out of 3 agents trade and pay -9.0
     buyer: [19]: all 1 agents trade and pay 18
 
+
+    >>> # ONE SELLER, ONE BUYER, ZERO MEDIATORS
+    >>> market = Market([AgentCategory("seller", [-4.]), AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-5, -7])])
+    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,0]))
+    Traders: [seller: [-4.0], buyer: [9.0, 8.0], mediator: [-5, -7]]
+    seller: [-4.0]: all 1 agents trade and pay -8.0
+    buyer: [9.0]: all 1 agents trade and pay 8.0
+
     """
+
+
     if len(ps_recipe) != market.num_categories:
         raise ValueError(
             "There are {} categories but {} elements in the PS recipe".
@@ -213,46 +226,51 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list):
 
     trace("\n#### Budget-Balanced Ascending Auction\n")
     trace(market)
-    optimal_trade = market.optimal_trade(ps_recipe)[0]
+
+    optimal_trade = market.optimal_trade(ps_recipe, max_iterations=max_iterations)[0]
+
     trace("For comparison, the optimal trade has {} deals: {}".format(len(optimal_trade),optimal_trade), "\n")
     trace("Procurement-set recipe: {}".format(ps_recipe))
 
     remaining_market = market.clone()
     prices = PriceVector(market.num_categories, ps_recipe, -MAX_VALUE)
-    potential_ps = [0] * market.num_categories
+    potential_ps = [math.inf] * market.num_categories
 
     try:
         for i in range(remaining_market.num_categories):
             category = remaining_market.categories[i]
-            potential_ps[i] = math.floor(
-                len(category) / ps_recipe[i])  # num of potential PS that can be supported by this category
+            if ps_recipe[i]>0:
+                potential_ps[i] = math.floor(
+                    len(category) / ps_recipe[i])  # num of potential PS that can be supported by this category
 
         min_potential_ps = min(potential_ps)
         trace("\n## Step 1: balancing the number of PS to {}".format(min_potential_ps))
         for i in range(remaining_market.num_categories):
-            category = remaining_market.categories[i]
-            if len(category)==0:  raise EmptyCategoryException()
-            while math.floor(len(category) / ps_recipe[i]) > min_potential_ps:
-                prices.increase_price_up_to_balance(i, category.lowest_agent_value(), category.name)
-                category.remove_lowest_agent()
-                trace("{}: {} agents remain".format(category.name, len(category)))
-                if len(category) == 0: raise EmptyCategoryException()
-            potential_ps[i] = math.floor(len(category) / ps_recipe[i])
-            trace("{}: price is now {}, {} agents remain, {} PS supported".format(category.name, prices[i], len(category), potential_ps[i]))
-
-        trace("\n## Step 2: balancing the price")
-        ps_count = min_potential_ps
-        while True:
-            for i in range(remaining_market.num_categories):
+            if ps_recipe[i]>0:
                 category = remaining_market.categories[i]
-                if len(category) == 0: raise EmptyCategoryException()
-                while len(category) / ps_recipe[i] > ps_count:
+                if len(category)==0:  raise EmptyCategoryException()
+                while math.floor(len(category) / ps_recipe[i]) > min_potential_ps:
                     prices.increase_price_up_to_balance(i, category.lowest_agent_value(), category.name)
                     category.remove_lowest_agent()
                     trace("{}: {} agents remain".format(category.name, len(category)))
                     if len(category) == 0: raise EmptyCategoryException()
                 potential_ps[i] = math.floor(len(category) / ps_recipe[i])
-                trace("{}: {} PS supported".format(category.name, potential_ps[i]))
+                trace("{}: price is now {}, {} agents remain, {} PS supported".format(category.name, prices[i], len(category), potential_ps[i]))
+
+        trace("\n## Step 2: balancing the price")
+        ps_count = min_potential_ps
+        while True:
+            for i in range(remaining_market.num_categories):
+                if ps_recipe[i] > 0:
+                    category = remaining_market.categories[i]
+                    if len(category) == 0: raise EmptyCategoryException()
+                    while len(category) / ps_recipe[i] > ps_count:
+                        prices.increase_price_up_to_balance(i, category.lowest_agent_value(), category.name)
+                        category.remove_lowest_agent()
+                        trace("{}: {} agents remain".format(category.name, len(category)))
+                        if len(category) == 0: raise EmptyCategoryException()
+                    potential_ps[i] = math.floor(len(category) / ps_recipe[i])
+                    trace("{}: {} PS supported".format(category.name, potential_ps[i]))
             ps_count -= 1
 
     except PriceCrossesZeroException:
