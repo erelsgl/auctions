@@ -53,7 +53,7 @@ class Market:
     def has_empty_category(self)->bool:
         return any([len(c)==0 for c in self.categories])
 
-    def optimal_trade(self, ps_recipe:list)->tuple:
+    def optimal_trade(self, ps_recipe:list, max_iterations:int=2000)->tuple:
         """
         :param ps_recipe: a list that indicates the number of agents from each category that should be in each PS.
         For example: [1,2] means 1 agent from first category (e.g. one buyer) and 2 agents from second category (e.g. two sellers).
@@ -93,26 +93,27 @@ class Market:
         >>> str(remaining_market)
         'Traders: [buyer: [9, 6], seller: [-8, -11], mediator: [-7, -10]]'
         """
-        if len(ps_recipe) != self.num_categories:
+        num_categories = self.num_categories
+        if len(ps_recipe) != num_categories:
             raise ValueError(
                 "There are {} categories but {} elements in the PS recipe".
-                    format(self.num_categories, len(ps_recipe)))
+                    format(num_categories, len(ps_recipe)))
+
+        # print("OT max_iterations=",max_iterations)
 
         trade = []
         remaining_market = self.clone()
-        while True:
+        for iteration in range(max_iterations):
             ps = []
-            for i in range(remaining_market.num_categories):
+            for i in range(num_categories):
                 recipe_i = ps_recipe[i]
                 category_i = remaining_market.categories[i]
-                # print (category_i.name)
                 if len(category_i) < recipe_i:
-                    # print(" breaking")
                     ps = None
                     break  # cannot create any more categories
                 highest_i = category_i.highest_agent_values(recipe_i)
-                # print(" highest_i=",highest_i)
                 ps += highest_i
+            # print("iteration",iteration,"ps", ps)
             if ps is None or sum(ps) <= 0:
                 break
             else: # sum(ps) > 0:

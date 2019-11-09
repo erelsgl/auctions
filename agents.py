@@ -14,9 +14,18 @@ class AgentCategory:
     Represents a category of single-parametric agents in a market, for example: "buyers".
     The agents are sorted in descending order of their value.
 
-    >>> a = AgentCategory("buyer", [1,6,3,7])
+    >>> a = AgentCategory("buyer", [1,6,3,7,4,9])
     >>> str(a)
-    'buyer: [7, 6, 3, 1]'
+    'buyer: [9, 7, 6, 4, 3, 1]'
+    >>> a.remove_highest_agent()
+    >>> str(a)
+    'buyer: [7, 6, 4, 3, 1]'
+    >>> a.remove_highest_agents(2)
+    >>> str(a)
+    'buyer: [4, 3, 1]'
+    >>> a.remove_lowest_agent()
+    >>> str(a)
+    'buyer: [4, 3]'
     """
     def __init__(self, name:str, values:list):
         self.name = name
@@ -64,21 +73,22 @@ class AgentCategory:
         Removes the highest-valued agent from this category.
         :return:
         """
-        del self.values[0]
+        self.values.pop(0)
 
     def remove_highest_agents(self, count:int):
         """
         Removes the 'count' highest-valued agents from this category.
-        :return:
         """
-        del self.values[0:count]
+        # del self.values[0:count]
+        for i in range(count):
+            self.values.pop(0)
 
     def remove_lowest_agent(self):
         """
         Removes the lowest-valued agent from this category.
         :return:
         """
-        del self.values[-1]
+        self.values.pop(-1)
 
     def clone(self):
         return AgentCategory(self.name, self.values)

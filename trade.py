@@ -11,8 +11,6 @@ Since: 2019-08
 """
 
 
-
-from agents import AgentCategory
 import math
 
 
@@ -32,21 +30,23 @@ class TradeWithSinglePrice:
         self.prices = prices
         self.ps_recipe = ps_recipe
         self.number_of_ps = min([math.floor(len(category) / count)
-                                 for (category,count) in zip(self.categories,self.ps_recipe)])
+                                 for (category,count) in zip(self.categories,self.ps_recipe)
+                                 if count>0])
 
     def __str__(self):
         if self.number_of_ps==0:
             return "No trade"
         s = ""
         for i in range(self.num_categories):
-            category = self.categories[i]
-            price = self.prices[i]
-            required_agents = self.ps_recipe[i]*self.number_of_ps
-            existing_agents = len(category)
-            if existing_agents == required_agents:
-                s += "{}: all {} agents trade and pay {}\n".format(self.categories[i], existing_agents, self.prices[i])
-            else:   # existing_agents > required_agents
-                s += "{}: random {} out of {} agents trade and pay {}\n".format(self.categories[i], required_agents, existing_agents, self.prices[i])
+            if self.ps_recipe[i]>0:
+                category = self.categories[i]
+                price = self.prices[i]
+                required_agents = self.ps_recipe[i]*self.number_of_ps
+                existing_agents = len(category)
+                if existing_agents == required_agents:
+                    s += "{}: all {} agents trade and pay {}\n".format(self.categories[i], existing_agents, self.prices[i])
+                else:   # existing_agents > required_agents
+                    s += "{}: random {} out of {} agents trade and pay {}\n".format(self.categories[i], required_agents, existing_agents, self.prices[i])
         return s.rstrip()
 
 
