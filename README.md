@@ -1,8 +1,11 @@
-# Strongly Budget Balanced Auctions for Multilateral Markets
+# Multi-lateral Auction Algorithms
 
-## Supplementary Material
+The algorithms in this folder are explained in the paper
 
-Implementation of the multi-lateral auction protocols in the paper.
+> Rica Gonen and Erel Segal-Halevi,
+> "Strongly Budget Balanced Auctions for Multilateral Markets",
+> Proceedings of AAAI 2020.
+
 
 To run the examples from the paper, try one of the following.
 
