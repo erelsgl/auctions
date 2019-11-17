@@ -11,7 +11,7 @@ Since:  2019-11
 
 from agents import AgentCategory
 from markets import Market
-from trade import Trade, TradeWithSinglePrice
+from trade import TradeWithSinglePrice
 
 trace = lambda *x: None  # To enable tracing, set trace=print
 
@@ -149,14 +149,14 @@ def mcafee_trade_reduction(market:Market, ps_recipe:list):
     for category in remaining_market.categories:
         if len(category)==0:
             category.append(-MAX_VALUE)
-    trace("Optimal trade, by increasing GFT, is: {}".format(optimal_trade))
+    trace("Optimal trade, by increasing GFT: {}".format(optimal_trade))
     first_negative_ps = remaining_market.get_highest_agents(ps_recipe)
     price_candidate = sum([abs(x) for x in first_negative_ps]) / len(first_negative_ps)
-    trace("First negative PS is: {}, candidate price is: {}".format(first_negative_ps, price_candidate))
+    trace("First negative PS: {}, candidate price: {}".format(first_negative_ps, price_candidate))
     actual_traders = market.empty_agent_categories()
 
-    if len(optimal_trade)>0:
-        last_positive_ps = optimal_trade[0]
+    if optimal_trade.num_of_deals()>0:
+        last_positive_ps = optimal_trade.procurement_sets[0]
 
         if is_price_good_for_ps(price_candidate, last_positive_ps):
             # All optimal traders trade in the candidate price - no reduction
@@ -165,10 +165,10 @@ def mcafee_trade_reduction(market:Market, ps_recipe:list):
 
         else:
             # Trade reduction
-            del optimal_trade[0]
+            del optimal_trade.procurement_sets[0]
             prices = last_positive_ps
 
-        for ps in optimal_trade:
+        for ps in optimal_trade.procurement_sets:
             for i in range(market.num_categories):
                 if ps[i] is not None:
                     actual_traders[i].append(ps[i])

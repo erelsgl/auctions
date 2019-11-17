@@ -10,7 +10,7 @@ Since:  2019-08
 
 from agents import AgentCategory
 from markets import Market
-from trade import Trade, TradeWithSinglePrice
+from trade import TradeWithSinglePrice
 
 import math
 
@@ -230,7 +230,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
 
     optimal_trade = market.optimal_trade(ps_recipe, max_iterations=max_iterations)[0]
 
-    trace("For comparison, the optimal trade has {} deals: {}".format(len(optimal_trade),optimal_trade), "\n")
+    trace("For comparison, the optimal trade is: ".format(optimal_trade), "\n")
     trace("Procurement-set recipe: {}".format(ps_recipe))
 
     remaining_market = market.clone()

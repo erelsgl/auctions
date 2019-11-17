@@ -11,7 +11,7 @@ Since:  2019-08
 
 from agents import AgentCategory
 from markets import Market
-from trade import Trade, TradeWithSinglePrice
+from trade import TradeWithSinglePrice
 
 trace = lambda *x: None  # To enable tracing, set trace=print
 
@@ -138,13 +138,13 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
     for category in remaining_market.categories:
         if len(category)==0:
             category.append(-MAX_VALUE)
-    trace("Optimal trade, by increasing GFT, is: {}".format(optimal_trade))
-    trace("Remaining market is: {}".format(remaining_market))
+    trace("Optimal trade, by increasing GFT: {}".format(optimal_trade))
+    trace("Remaining market: {}".format(remaining_market))
 
     actual_traders = market.empty_agent_categories()
 
     latest_prices = None
-    for ps in optimal_trade:
+    for ps in optimal_trade.procurement_sets:
         ps = list(ps)
         if latest_prices is None:
             trace("\nCalculating prices for PS {}:".format(ps))

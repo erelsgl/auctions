@@ -24,8 +24,8 @@ num_of_iterations = 5000
 
 for num_of_agents_per_category in nums_of_agents:
     print("\n\n### McAfee's experiment: n={}".format(num_of_agents_per_category))
-    count_max_gft = 0  # count the number of times the max GFT was attained
-    sum_max_gft = sum_gft = 0
+    count_optimal_gft = 0  # count the number of times the max GFT was attained
+    sum_optimal_gft = sum_mcafee_gft = 0
     for _ in range(num_of_iterations):
         market = Market([
             AgentCategory.uniformly_random("buyer", num_of_agents_per_category, min_value, max_value),
@@ -33,12 +33,19 @@ for num_of_agents_per_category in nums_of_agents:
         ])
         (optimal_trade, _) = market.optimal_trade(recipe)
         mcafee_trade = mcafee_trade_reduction(market, recipe)
-        optimal_count = len(optimal_trade)
-        mcafee_count  = mcafee_trade.number_of_ps
+
+        optimal_count = optimal_trade.num_of_deals()
+        mcafee_count  = mcafee_trade.num_of_deals()
         if optimal_count==mcafee_count:
-            count_max_gft += 1
+            count_optimal_gft += 1
         elif optimal_count==mcafee_count+1:
             pass
         else:
             raise ValueError("Deals: {} out of {}".format(mcafee_count, optimal_count))
-    print("Max GFT: {} / {} = {}%".format(count_max_gft, num_of_iterations, count_max_gft*100 / num_of_iterations))
+
+        sum_optimal_gft +=  optimal_trade.gain_from_trade()
+        sum_mcafee_gft  += mcafee_trade.gain_from_trade()
+
+    print("Num of times McAfee attains the maximum GFT: {} / {} = {:.2f}%".format(count_optimal_gft, num_of_iterations, count_optimal_gft * 100 / num_of_iterations))
+    print("GFT of McAfee: {:.2f} / {:.2f} = {:.2f}%".format(sum_mcafee_gft, sum_optimal_gft, sum_mcafee_gft * 100 / sum_optimal_gft))
+

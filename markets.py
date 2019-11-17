@@ -12,6 +12,7 @@ Since: 2019-08
 """
 
 from agents import AgentCategory
+from trade import TradeWithoutPrice
 
 class Market:
     """
@@ -120,26 +121,26 @@ class Market:
 
         >>> (trade,remaining_market)=market2.optimal_trade([1,1])
         >>> trade
-        [(7, -6), (9, -4), (11, -2)]
+        3 deals: [(7, -6), (9, -4), (11, -2)]
         >>> str(remaining_market)
         'Traders: [buyer: [5], seller: [-8]]'
 
         >>> (trade,remaining_market)=market2.optimal_trade([1,2])
         >>> trade
-        [(11, -2, -4)]
+        1 deals: [(11, -2, -4)]
         >>> str(remaining_market)
         'Traders: [buyer: [9, 7, 5], seller: [-6, -8]]'
 
         >>> (trade,remaining_market)=market2.optimal_trade([2,1])
         >>> trade
-        [(7, 5, -4), (11, 9, -2)]
+        2 deals: [(7, 5, -4), (11, 9, -2)]
         >>> str(remaining_market)
         'Traders: [buyer: [], seller: [-6, -8]]'
 
         >>> market3 = Market([AgentCategory("buyer", [15, 12, 9, 6]),AgentCategory("seller",[-2,-5,-8,-11]),AgentCategory("mediator", [-1, -4, -7, -10])])
         >>> (trade,remaining_market)=market3.optimal_trade([1,1,1])
         >>> trade
-        [(12, -5, -4), (15, -2, -1)]
+        2 deals: [(12, -5, -4), (15, -2, -1)]
 
         >>> str(remaining_market)
         'Traders: [buyer: [9, 6], seller: [-8, -11], mediator: [-7, -10]]'
@@ -160,7 +161,8 @@ class Market:
                 trade.append(tuple(ps))
                 remaining_market.remove_highest_agents(ps_recipe)
         trade.sort(key=lambda ps: sum(ps)) # sort in increasing order of GFT
-        return (trade, remaining_market)
+        return (TradeWithoutPrice(trade), remaining_market)
+
 
     def best_containing_PS(self, category_index:int, value:float):
         """
