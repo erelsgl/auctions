@@ -7,6 +7,8 @@ class TradeWithSinglePrice
 Represents a set of deals done in a multi-lateral market.
 
 See also: Market
+
+Author: Erel Segal-Halevi
 Since: 2019-08
 """
 

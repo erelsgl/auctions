@@ -4,6 +4,7 @@
 function budget_balanced_trade_reduction
 Implementation of a budget-balanced trade-reduction protocol for a multi-lateral market.
 
+Author: Erel Segal-Halevi
 Since:  2019-08
 """
 
@@ -128,6 +129,9 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
             "There are {} categories but {} elements in the PS recipe".
                 format(market.num_categories, len(ps_recipe)))
 
+    if any(r!=1 for r in ps_recipe):
+        raise ValueError("Currently, the trade-reduction protocol supports only recipes of ones; {} was given".format(ps_recipe))
+
     trace("\n#### Budget-Balanced Trade Reduction\n")
     trace(market)
     (optimal_trade, remaining_market) = market.optimal_trade(ps_recipe)
@@ -137,13 +141,7 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
     trace("Optimal trade, by increasing GFT, is: {}".format(optimal_trade))
     trace("Remaining market is: {}".format(remaining_market))
 
-    if any(r!=1 for r in ps_recipe):
-        raise ValueError("Currently, the trade-reduction protocol supports only recipes of ones; {} was given".format(ps_recipe))
-
-    actual_trade = Trade(market.num_categories)
-    actual_traders = [None] * market.num_categories
-    for i in range(market.num_categories):
-        actual_traders[i] = AgentCategory(market.categories[i].name, [])
+    actual_traders = market.empty_agent_categories()
 
     latest_prices = None
     for ps in optimal_trade:
@@ -163,7 +161,6 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
                     prices = market.calculate_prices_by_external_competition(pivot_index, pivot_value, best_containing_PS)
                     trace("    Prices are {}".format(prices))
                     latest_prices = prices
-                    actual_trade.append(ps, prices)
                     for i in range(market.num_categories):
                         if ps[i] is not None:
                             actual_traders[i].append(ps[i])
@@ -178,13 +175,9 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
                     trace("    Remaining market is now: {}".format(remaining_market))
         else:
             trace("\nPrices for PS {} are {}".format(ps, latest_prices))
-            actual_trade.append(ps, latest_prices)
             for i in range(market.num_categories):
                 if ps[i] is not None:
                     actual_traders[i].append(ps[i])
-
-    # trace("\nActual trade is:\n{}".format(actual_trade))
-    # return actual_trade
 
     trace("\n")
     return TradeWithSinglePrice(actual_traders, ps_recipe, latest_prices)

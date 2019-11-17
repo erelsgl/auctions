@@ -14,6 +14,7 @@ Here, we use our trade-reduction SBB protocol as the double-auction in each sub-
 It can be seen that, even though a SBB protocol is used in each sub-market,
 the combined outcome is not SBB.
 
+Author: Erel Segal-Halevi
 Since:  2019-09
 """
 

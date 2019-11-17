@@ -6,8 +6,10 @@ class AgentCategory
 Represents a category of traders in a multi-lateral market,
 such as "buyers", "sellers", etc.
 
+Author: Erel Segal-Halevi
 Since: 2019-08
 """
+
 
 class AgentCategory:
     """
@@ -26,6 +28,12 @@ class AgentCategory:
     >>> a.remove_lowest_agent()
     >>> str(a)
     'buyer: [4, 3]'
+    >>> a.append(3.5)
+    >>> str(a)
+    'buyer: [4, 3.5, 3]'
+    >>> a.append([3.2,3.8])
+    >>> str(a)
+    'buyer: [4, 3.8, 3.5, 3.2, 3]'
     """
     def __init__(self, name:str, values:list):
         self.name = name
@@ -47,8 +55,12 @@ class AgentCategory:
         Keeps the values sorted in descending order.
         :param value: the value of the new agent.
         """
-        self.values.append(value)
+        if isinstance(value, list):
+            self.values += value
+        else:
+            self.values.append(value)
         self.values.sort(reverse=True)
+
 
     def highest_agent_value(self)->float:
         """
@@ -92,6 +104,14 @@ class AgentCategory:
 
     def clone(self):
         return AgentCategory(self.name, self.values)
+
+
+
+    @staticmethod
+    def uniformly_random(name:str, num_of_agents:int, min_value:float, max_value:float):
+        import random
+        values = [random.uniform(min_value,max_value) for _ in range(num_of_agents)]
+        return AgentCategory(name, values)
 
 
 if __name__ == "__main__":

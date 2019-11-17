@@ -4,6 +4,7 @@
 function budget_balanced_ascending_auction
 Implementation of a multiple-clock strongly-budget-balanced ascending auction for a multi-lateral market.
 
+Author: Erel Segal-Halevi
 Since:  2019-08
 """
 

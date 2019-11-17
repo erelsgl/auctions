@@ -6,6 +6,8 @@ class Market
 Represents a multi-lateral market, that contains several agent categories.
 
 See also: AgentCategory
+
+Author: Erel Segal-Halevi
 Since: 2019-08
 """
 
@@ -53,6 +55,55 @@ class Market:
     def has_empty_category(self)->bool:
         return any([len(c)==0 for c in self.categories])
 
+    def get_highest_agents(self, ps_recipe:list)->tuple:
+        """
+        Create a procurement-set from the r_i highest-value agents in each category i,
+            where r_i = ps_recipe[i].
+
+        :return a tuple with the values of the highest-valued agent/s in each category;
+        if there are not enough agents in one of the categories, returns None.
+
+        >>> market = Market([AgentCategory("buyer", [9, 7, 11, 5]), AgentCategory("seller",[-4,-6,-8,-2])])
+        >>> market.get_highest_agents([1,1])
+        (11, -2)
+        >>> market.get_highest_agents([2,1])
+        (11, 9, -2)
+        >>> market.get_highest_agents([1,2])
+        (11, -2, -4)
+        >>> market.get_highest_agents([5,1])
+        >>> market.get_highest_agents([1,5])
+        """
+        ps = []
+        for i in range(self.num_categories):
+            recipe_i = ps_recipe[i]
+            category_i = self.categories[i]
+            if len(category_i) < recipe_i:
+                return None  # Category i is empty, so we cannot create any more procurement-sets.
+            highest_i = category_i.highest_agent_values(recipe_i)
+            ps += highest_i
+        return tuple(ps)
+
+    def remove_highest_agents(self, ps_recipe:list):
+        """
+        Remove, from each category i in the market,
+        the r_i highest agents, where r_i = ps_recipe[i].
+        """
+        for i in range(self.num_categories):
+            recipe_i = ps_recipe[i]
+            category_i = self.categories[i]
+            category_i.remove_highest_agents(recipe_i)
+
+
+    def empty_agent_categories(self)->list:
+        """
+        Construct k empty categories, one for each category in the present market.
+        :return:  a list of AgentCategory objects.
+        """
+        categories = [None] * self.num_categories
+        for i in range(self.num_categories):
+            categories[i] = AgentCategory(self.categories[i].name, [])
+        return categories
+
     def optimal_trade(self, ps_recipe:list, max_iterations:int=2000)->tuple:
         """
         :param ps_recipe: a list that indicates the number of agents from each category that should be in each PS.
@@ -99,29 +150,15 @@ class Market:
                 "There are {} categories but {} elements in the PS recipe".
                     format(num_categories, len(ps_recipe)))
 
-        # print("OT max_iterations=",max_iterations)
-
         trade = []
         remaining_market = self.clone()
         for iteration in range(max_iterations):
-            ps = []
-            for i in range(num_categories):
-                recipe_i = ps_recipe[i]
-                category_i = remaining_market.categories[i]
-                if len(category_i) < recipe_i:
-                    ps = None
-                    break  # cannot create any more categories
-                highest_i = category_i.highest_agent_values(recipe_i)
-                ps += highest_i
-            # print("iteration",iteration,"ps", ps)
+            ps = remaining_market.get_highest_agents(ps_recipe)
             if ps is None or sum(ps) <= 0:
-                break
-            else: # sum(ps) > 0:
+                break      # Either there are not enough traders in one of the categories, or the GFT is negative, so we cannot create any more positive procurement-sets.
+            else:          # sum(ps) > 0 --- the GFT is positive:
                 trade.append(tuple(ps))
-                for i in range(remaining_market.num_categories):
-                    recipe_i = ps_recipe[i]
-                    category_i = remaining_market.categories[i]
-                    category_i.remove_highest_agents(recipe_i)
+                remaining_market.remove_highest_agents(ps_recipe)
         trade.sort(key=lambda ps: sum(ps)) # sort in increasing order of GFT
         return (trade, remaining_market)
 

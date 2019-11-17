@@ -2,9 +2,11 @@
 
 """
 Demonstration of a trade-reduction strongly-budget-balanced auction
-for a multi-lateral market with buyers, mediators and sellers (type vector: 1,1,1)
+for a multi-lateral market with buyers, mediators and sellers (recipe: 1,1,1)
 
 Since:  2019-08
+
+Author: Erel Segal-Halevi
 """
 
 
