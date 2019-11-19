@@ -12,7 +12,7 @@ Since: 2019-08
 """
 
 from agents import AgentCategory
-from trade import TradeWithoutPrice
+from trade import TradeWithMaterialBalance
 
 class Market:
     """
@@ -161,7 +161,7 @@ class Market:
                 trade.append(tuple(ps))
                 remaining_market.remove_highest_agents(ps_recipe)
         trade.sort(key=lambda ps: sum(ps)) # sort in increasing order of GFT
-        return (TradeWithoutPrice(trade), remaining_market)
+        return (TradeWithMaterialBalance(trade), remaining_market)
 
 
     def best_containing_PS(self, category_index:int, value:float):
