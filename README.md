@@ -25,6 +25,10 @@ Lemonade-market auction mentioned in Section 5:
 
     python3 trade_reduction_demo_lemonade.py
 
+Simulation experiments following McAfee (1992):
+
+    python3 aaai20_experiment.py
+
 The other files contain some additional examples.
 
 Example results can be found in the `results/` folder.
