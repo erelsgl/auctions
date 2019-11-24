@@ -13,7 +13,8 @@ from agents import AgentCategory
 import ascending_auction_protocol
 from ascending_auction_protocol import budget_balanced_ascending_auction
 
-ascending_auction_protocol.trace = print
+import logging
+ascending_auction_protocol.logger.setLevel(logging.INFO)
 
 ps_recipe = [1,1,1]
 

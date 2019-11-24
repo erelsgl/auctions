@@ -15,7 +15,10 @@ from agents import AgentCategory
 import mcafee_protocol
 from mcafee_protocol import mcafee_trade_reduction
 
-mcafee_protocol.trace = print
+
+import logging
+mcafee_protocol.logger.setLevel(logging.INFO)
+
 recipe = [1,1]
 
 

@@ -13,7 +13,10 @@ from agents import AgentCategory
 from markets import Market
 from trade import TradeWithSinglePrice
 
-trace = lambda *x: None  # To enable tracing, set trace=print
+import logging, sys
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+# To enable tracing, set logger.setLevel(logging.INFO)
 
 MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
 
@@ -143,16 +146,16 @@ def mcafee_trade_reduction(market:Market, ps_recipe:list):
     if any(r!=1 for r in ps_recipe):
         raise ValueError("Currently, the trade-reduction protocol supports only recipes of ones; {} was given".format(ps_recipe))
 
-    trace("\n#### McAfee Trade Reduction\n")
-    trace(market)
+    logger.info("\n#### McAfee Trade Reduction\n")
+    logger.info(market)
     (optimal_trade, remaining_market) = market.optimal_trade(ps_recipe)
     for category in remaining_market.categories:
         if len(category)==0:
             category.append(-MAX_VALUE)
-    trace("Optimal trade, by increasing GFT: {}".format(optimal_trade))
+    logger.info("Optimal trade, by increasing GFT: {}".format(optimal_trade))
     first_negative_ps = remaining_market.get_highest_agents(ps_recipe)
     price_candidate = sum([abs(x) for x in first_negative_ps]) / len(first_negative_ps)
-    trace("First negative PS: {}, candidate price: {}".format(first_negative_ps, price_candidate))
+    logger.info("First negative PS: {}, candidate price: {}".format(first_negative_ps, price_candidate))
     actual_traders = market.empty_agent_categories()
 
     if optimal_trade.num_of_deals()>0:
@@ -175,7 +178,7 @@ def mcafee_trade_reduction(market:Market, ps_recipe:list):
     else:
         prices = [0 for i in range(market.num_categories)]
 
-    trace("\n")
+    logger.info("\n")
     return TradeWithSinglePrice(actual_traders, ps_recipe, prices)
 
 

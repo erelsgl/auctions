@@ -12,12 +12,11 @@ from agents import AgentCategory
 from markets import Market
 from trade import TradeWithSinglePrice
 
-import math
+import math, logging, sys
 
-trace = lambda *x: None  # To enable tracing, set trace=print
-
-def set_trace(func):
-    trace = func
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+# To enable tracing, set logger.setLevel(logging.INFO)
 
 MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
 
@@ -58,11 +57,11 @@ class PriceVector:
         new_sum = old_sum + category_count*(new_price-old_price)
         if old_sum < 0 and new_sum >= 0:
             fixed_new_price = old_price - old_sum/category_count
-            trace("{}: while increasing price towards {}, stopped at {} where the price-sum crossed zero".format(description, new_price, fixed_new_price))
+            logger.info("{}: while increasing price towards {}, stopped at {} where the price-sum crossed zero".format(description, new_price, fixed_new_price))
             self.prices[category_index] = fixed_new_price
             raise PriceCrossesZeroException()
         else:
-            trace("{}: price increases to {}".format(description, new_price))
+            logger.info("{}: price increases to {}".format(description, new_price))
             self.prices[category_index] = new_price
 
     def __str__(self):
@@ -225,13 +224,13 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
             "There are {} categories but {} elements in the PS recipe".
                 format(market.num_categories, len(ps_recipe)))
 
-    trace("\n#### Budget-Balanced Ascending Auction\n")
-    trace(market)
+    logger.info("\n#### Budget-Balanced Ascending Auction\n")
+    logger.info(market)
 
     optimal_trade = market.optimal_trade(ps_recipe, max_iterations=max_iterations)[0]
 
-    trace("For comparison, the optimal trade is: ".format(optimal_trade), "\n")
-    trace("Procurement-set recipe: {}".format(ps_recipe))
+    logger.info("For comparison, the optimal trade is: %s\n", optimal_trade)
+    logger.info("Procurement-set recipe: {}".format(ps_recipe))
 
     remaining_market = market.clone()
     prices = PriceVector(market.num_categories, ps_recipe, -MAX_VALUE)
@@ -245,7 +244,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
                     len(category) / ps_recipe[i])  # num of potential PS that can be supported by this category
 
         min_potential_ps = min(potential_ps)
-        trace("\n## Step 1: balancing the number of PS to {}".format(min_potential_ps))
+        logger.info("\n## Step 1: balancing the number of PS to {}".format(min_potential_ps))
         for i in range(remaining_market.num_categories):
             if ps_recipe[i]>0:
                 category = remaining_market.categories[i]
@@ -253,12 +252,12 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
                 while math.floor(len(category) / ps_recipe[i]) > min_potential_ps:
                     prices.increase_price_up_to_balance(i, category.lowest_agent_value(), category.name)
                     category.remove_lowest_agent()
-                    trace("{}: {} agents remain".format(category.name, len(category)))
+                    logger.info("{}: {} agents remain".format(category.name, len(category)))
                     if len(category) == 0: raise EmptyCategoryException()
                 potential_ps[i] = math.floor(len(category) / ps_recipe[i])
-                trace("{}: price is now {}, {} agents remain, {} PS supported".format(category.name, prices[i], len(category), potential_ps[i]))
+                logger.info("{}: price is now {}, {} agents remain, {} PS supported".format(category.name, prices[i], len(category), potential_ps[i]))
 
-        trace("\n## Step 2: balancing the price")
+        logger.info("\n## Step 2: balancing the price")
         ps_count = min_potential_ps
         while True:
             for i in range(remaining_market.num_categories):
@@ -268,19 +267,19 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
                     while len(category) / ps_recipe[i] > ps_count:
                         prices.increase_price_up_to_balance(i, category.lowest_agent_value(), category.name)
                         category.remove_lowest_agent()
-                        trace("{}: {} agents remain".format(category.name, len(category)))
+                        logger.info("{}: {} agents remain".format(category.name, len(category)))
                         if len(category) == 0: raise EmptyCategoryException()
                     potential_ps[i] = math.floor(len(category) / ps_recipe[i])
-                    trace("{}: {} PS supported".format(category.name, potential_ps[i]))
+                    logger.info("{}: {} PS supported".format(category.name, potential_ps[i]))
             ps_count -= 1
 
     except PriceCrossesZeroException:
-        trace("\nPrice crossed zero. Final price vector: {}".format(prices))
+        logger.info("\nPrice crossed zero. Final price vector: {}".format(prices))
 
     except EmptyCategoryException:
-        trace("\nOne of the categories became empty. No trade! Final price vector: {}".format(prices))
+        logger.info("\nOne of the categories became empty. No trade! Final price vector: {}".format(prices))
 
-    trace(remaining_market)
+    logger.info(remaining_market)
     return TradeWithSinglePrice(remaining_market.categories, ps_recipe, prices.prices)
 
 

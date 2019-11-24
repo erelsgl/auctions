@@ -15,7 +15,9 @@ from agents import AgentCategory
 import trade_reduction_protocol
 from trade_reduction_protocol import budget_balanced_trade_reduction
 
-trade_reduction_protocol.trace = print
+import logging
+trade_reduction_protocol.logger.setLevel(logging.INFO)
+
 
 print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,1,1): buyers-sellers-mediators")
 

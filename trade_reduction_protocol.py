@@ -13,7 +13,10 @@ from agents import AgentCategory
 from markets import Market
 from trade import TradeWithSinglePrice
 
-trace = lambda *x: None  # To enable tracing, set trace=print
+import logging, sys
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+# To enable tracing, set logger.setLevel(logging.INFO)
 
 MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
 
@@ -132,14 +135,14 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
     if any(r!=1 for r in ps_recipe):
         raise ValueError("Currently, the trade-reduction protocol supports only recipes of ones; {} was given".format(ps_recipe))
 
-    trace("\n#### Budget-Balanced Trade Reduction\n")
-    trace(market)
+    logger.info("\n#### Budget-Balanced Trade Reduction\n")
+    logger.info(market)
     (optimal_trade, remaining_market) = market.optimal_trade(ps_recipe)
     for category in remaining_market.categories:
         if len(category)==0:
             category.append(-MAX_VALUE)
-    trace("Optimal trade, by increasing GFT: {}".format(optimal_trade))
-    trace("Remaining market: {}".format(remaining_market))
+    logger.info("Optimal trade, by increasing GFT: {}".format(optimal_trade))
+    logger.info("Remaining market: {}".format(remaining_market))
 
     actual_traders = market.empty_agent_categories()
 
@@ -147,39 +150,39 @@ def budget_balanced_trade_reduction(market:Market, ps_recipe:list):
     for ps in optimal_trade.procurement_sets:
         ps = list(ps)
         if latest_prices is None:
-            trace("\nCalculating prices for PS {}:".format(ps))
+            logger.info("\nCalculating prices for PS {}:".format(ps))
             for pivot_index in range(len(ps)):
                 pivot_value = ps[pivot_index]
                 pivot_category = market.categories[pivot_index]
-                trace("  Looking for external competition to {} with value {}:".
+                logger.info("  Looking for external competition to {} with value {}:".
                       format(pivot_category.name, pivot_value))
                 best_containing_PS = remaining_market.best_containing_PS(pivot_index, pivot_value)
                 best_containing_GFT = sum(best_containing_PS)
                 if best_containing_GFT > 0:  # EXTERNAL COMPETITION - KEEP TRADER
-                    trace("    best PS is {} with GFT {}. It is positive so it is an external competition.".
+                    logger.info("    best PS is {} with GFT {}. It is positive so it is an external competition.".
                           format(best_containing_PS, best_containing_GFT))
                     prices = market.calculate_prices_by_external_competition(pivot_index, pivot_value, best_containing_PS)
-                    trace("    Prices are {}".format(prices))
+                    logger.info("    Prices are {}".format(prices))
                     latest_prices = prices
                     for i in range(market.num_categories):
                         if ps[i] is not None:
                             actual_traders[i].append(ps[i])
                     break  # done with current PS - move to next PS
                 else:  # NO EXTERNAL COMPETITION - REMOVE TRADER
-                    trace("    Best PS is {} with GFT {}. It is negative so it is not an external competition.".
+                    logger.info("    Best PS is {} with GFT {}. It is negative so it is not an external competition.".
                           format(best_containing_PS, best_containing_GFT))
-                    trace("    Remove {} {} from trade and add to remaining market".
+                    logger.info("    Remove {} {} from trade and add to remaining market".
                           format(pivot_category.name, pivot_value))
                     ps[pivot_index] = None
                     remaining_market.append_trader(pivot_index, pivot_value)
-                    trace("    Remaining market is now: {}".format(remaining_market))
+                    logger.info("    Remaining market is now: {}".format(remaining_market))
         else:
-            trace("\nPrices for PS {} are {}".format(ps, latest_prices))
+            logger.info("\nPrices for PS {} are {}".format(ps, latest_prices))
             for i in range(market.num_categories):
                 if ps[i] is not None:
                     actual_traders[i].append(ps[i])
 
-    trace("\n")
+    logger.info("\n")
     return TradeWithSinglePrice(actual_traders, ps_recipe, latest_prices)
 
 

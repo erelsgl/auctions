@@ -13,7 +13,8 @@ from agents import AgentCategory
 import ascending_auction_protocol
 from ascending_auction_protocol import budget_balanced_ascending_auction
 
-ascending_auction_protocol.trace = print
+import logging
+ascending_auction_protocol.logger.setLevel(logging.INFO)
 
 
 print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,2)")

@@ -12,7 +12,8 @@ from agents import AgentCategory
 import ascending_auction_protocol
 from ascending_auction_protocol import budget_balanced_ascending_auction
 
-ascending_auction_protocol.trace = print
+import logging
+ascending_auction_protocol.logger.setLevel(logging.INFO)
 
 market = Market([
     AgentCategory("seller",   [-1, -2, -3, -4, -5, -6, -7, -8]),

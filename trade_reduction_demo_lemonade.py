@@ -23,7 +23,8 @@ from agents import AgentCategory
 import trade_reduction_protocol
 from trade_reduction_protocol import budget_balanced_trade_reduction
 
-trade_reduction_protocol.trace = print
+import logging
+trade_reduction_protocol.logger.setLevel(logging.INFO)
 
 pickers = [-3, -6, -7]
 squeezers = [-1, -3, -6]
