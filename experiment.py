@@ -31,14 +31,14 @@ def experiment(results_csv_file:str, auction_function:Callable, auction_name:str
     """
     results_table = TeeTable(TABLE_COLUMNS, results_csv_file)
     recipe_str = ":".join(map(str,recipe))
+    num_of_categories = len(recipe)
     for num_of_agents_per_category in nums_of_agents:
-        # print("\n\n### {}: n={}".format(auction_name, num_of_agents_per_category))
         sum_optimal_count = sum_auction_count = 0  # count the number of deals done in the optimal vs. the actual auction.
         sum_optimal_gft = sum_auction_gft = 0
         for _ in range(num_of_iterations):
             market = Market([
-                AgentCategory.uniformly_random("agent", num_of_agents_per_category, min_value, max_value)
-                for (min_value, max_value) in value_ranges
+                AgentCategory.uniformly_random("agent", num_of_agents_per_category*recipe[category], value_ranges[category][0], value_ranges[category][1])
+                for category in range(num_of_categories)
             ])
             (optimal_trade, _) = market.optimal_trade(recipe)
             auction_trade = auction_function(market, recipe)

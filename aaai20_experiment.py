@@ -34,44 +34,43 @@ from experiment import  experiment
 from mcafee_protocol import mcafee_trade_reduction
 from trade_reduction_protocol import budget_balanced_trade_reduction
 from ascending_auction_protocol import budget_balanced_ascending_auction
+import sys
+
 results_file = "results/aaai20.csv"
 
 experiment(results_file,mcafee_trade_reduction, "McAfee", recipe=(1,1),
            value_ranges   = [(1,1000),(-1000,-1)],
            nums_of_agents = (2, 3, 4, 5, 10, 15, 25, 50, 100, 500, 1000),
-           # nums_of_agents = (2, 3, 4, 5, 10),
-           num_of_iterations = 50
-           # num_of_iterations = 50
+           num_of_iterations = 50000
            )
 
 experiment(results_file,budget_balanced_trade_reduction, "SBB External Competition", recipe=(1,1),
            value_ranges   = [(1,1000),(-1000,-1)],
            nums_of_agents = (2, 3, 4, 5, 10, 15, 25, 50, 100, 500, 1000),
-           num_of_iterations = 50
+           num_of_iterations = 50000
            )
 
 experiment(results_file,budget_balanced_trade_reduction, "SBB External Competition", recipe=(1,1,1),
            value_ranges   = [(1,2000),(-1000,-1),(-1000,-1)],
            nums_of_agents = (2, 3, 4, 5, 10, 15, 25, 50, 100, 500, 1000),
-           num_of_iterations = 50
+           num_of_iterations = 50000
            )
 
 experiment(results_file,budget_balanced_ascending_auction, "SBB Ascending Prices", recipe=(1,1),
            value_ranges   = [(1,1000),(-1000,-1)],
            nums_of_agents = (2, 3, 4, 5, 10, 15, 25, 50, 100, 500, 1000),
-           num_of_iterations = 50
+           num_of_iterations = 50000
            )
 
 experiment(results_file,budget_balanced_ascending_auction, "SBB Ascending Prices", recipe=(1,1,1),
            value_ranges   = [(1,2000),(-1000,-1),(-1000,-1)],
            nums_of_agents = (2, 3, 4, 5, 10, 15, 25, 50, 100, 500, 1000),
-           num_of_iterations = 50
+           num_of_iterations = 50000
            )
 
-
 experiment(results_file,budget_balanced_ascending_auction, "SBB Ascending Prices", recipe=(2,1),
-           value_ranges   = [(1,1000),(-1000,-1)],
+           value_ranges   = [(1,500),(-1000,-1)],
            nums_of_agents = (2, 3, 4, 5, 10, 15, 25, 50, 100, 500, 1000),
-           num_of_iterations = 50
+           num_of_iterations = 50000
            )
 
