@@ -41,13 +41,15 @@ def is_price_good_for_ps(price:float, ps:list)->bool:
 
 
 
-def mcafee_trade_reduction(market:Market, ps_recipe:list):
+def mcafee_trade_reduction(market:Market, ps_recipe:list, price_heuristic=True):
     """
     Calculate the trade and prices using generalized-trade-reduction.
     :param market:   contains a list of k categories, each containing several agents.
     :param ps_recipe:  a list of integers, one integer per category.
                        Each integer i represents the number of agents of category i
                        that should be in each procurement-set.
+    :param price_heuristic: whether to use the heuristic of setting the price to (s_{k+1)+b_{k+1})/2.
+                            Default is true, as in the original paper.
     :return: Trade object, representing the trade and prices.
 
     >>> # ONE BUYER, ONE SELLER
@@ -154,14 +156,15 @@ def mcafee_trade_reduction(market:Market, ps_recipe:list):
             category.append(-MAX_VALUE)
     logger.info("Optimal trade, by increasing GFT: {}".format(optimal_trade))
     first_negative_ps = remaining_market.get_highest_agents(ps_recipe)
-    price_candidate = sum([abs(x) for x in first_negative_ps]) / len(first_negative_ps)
-    logger.info("First negative PS: {}, candidate price: {}".format(first_negative_ps, price_candidate))
+    if price_heuristic:
+        price_candidate = sum([abs(x) for x in first_negative_ps]) / len(first_negative_ps)
+        logger.info("First negative PS: {}, candidate price: {}".format(first_negative_ps, price_candidate))
     actual_traders = market.empty_agent_categories()
 
     if optimal_trade.num_of_deals()>0:
         last_positive_ps = optimal_trade.procurement_sets[0]
 
-        if is_price_good_for_ps(price_candidate, last_positive_ps):
+        if price_heuristic and is_price_good_for_ps(price_candidate, last_positive_ps):
             # All optimal traders trade in the candidate price - no reduction
             prices = [price_candidate * (-1 if last_positive_ps[i]<0 else +1)
                       for i in range(market.num_categories)]

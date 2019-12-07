@@ -78,19 +78,23 @@ class TradeWithSinglePrice (Trade):
     self.prices:     a vector of k floats - one  per category - representing the price paid by traders of that category.
     self.ps_recipe:  a vector of k integers - one per category - representing the number of traders from this category in each PS.
 
-    >>> t = TradeWithSinglePrice([AgentCategory("buyer", [7,4,2]), AgentCategory("seller",[-1,-3,-5])], [1,1], [0,0])
+    >>> t = TradeWithSinglePrice([AgentCategory("buyer", [7,4,2]), AgentCategory("seller",[-1,-3,-5])], [1,1], [2,-1])
     >>> t
-    buyer: [7, 4, 2]: all 3 agents trade and pay 0
-    seller: [-1, -3, -5]: all 3 agents trade and pay 0
+    buyer: [7, 4, 2]: all 3 agents trade and pay 2
+    seller: [-1, -3, -5]: all 3 agents trade and pay -1
     >>> t.num_of_deals()
     3
-    >>> t.gain_from_trade()
+    >>> t.gain_from_trade(including_auctioneer=True)
     4.0
-    >>> t = TradeWithSinglePrice([AgentCategory("buyer", [7,4,3,2]), AgentCategory("seller",[-1,-3,-5])], [1,1], [0,0])
+    >>> t.gain_from_trade(including_auctioneer=False)
+    1.0
+    >>> t = TradeWithSinglePrice([AgentCategory("buyer", [7,4,3,2]), AgentCategory("seller",[-1,-3,-5])], [1,1], [1,-1])
     >>> t
-    buyer: [7, 4, 3, 2]: random 3 out of 4 agents trade and pay 0
-    seller: [-1, -3, -5]: all 3 agents trade and pay 0
-    >>> t.gain_from_trade()
+    buyer: [7, 4, 3, 2]: random 3 out of 4 agents trade and pay 1
+    seller: [-1, -3, -5]: all 3 agents trade and pay -1
+    >>> t.gain_from_trade(including_auctioneer=True)
+    3.0
+    >>> t.gain_from_trade(including_auctioneer=False)
     3.0
     """
     def __init__(self, categories:list, ps_recipe:list, prices:list):
@@ -105,14 +109,26 @@ class TradeWithSinglePrice (Trade):
     def num_of_deals(self):
         return self.num_of_deals_cache
 
-    def gain_from_trade(self):
+    def gain_from_trade(self, including_auctioneer=True):
+        """
+        Calculate the total gain-from-trade.
+        :param including_auctioneer:  If true, the result includes the profit of the auctioneer.
+        If false, the result includes only the profit of the traders.
+        This may be smaller when the auction has a surplus, or larger when the auction has a deficit.
+        :return:
+        """
         if self.num_of_deals_cache==0:
             return 0
         gft = 0
         for i in range(self.num_categories):
             category = self.categories[i]
             agents_per_deal = self.ps_recipe[i]
-            gft += sum(category.values)/len(category.values)*self.num_of_deals_cache*agents_per_deal
+            participating_agents_in_category = agents_per_deal*self.num_of_deals_cache
+            probability_to_participate_in_trade = participating_agents_in_category/len(category.values)
+            price_per_agent_per_deal = self.prices[i]
+            gft += sum(category.values)*probability_to_participate_in_trade
+            if not including_auctioneer:
+                gft -= price_per_agent_per_deal*participating_agents_in_category
         return gft
 
     def __repr__(self):

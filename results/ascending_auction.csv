@@ -1,0 +1,7 @@
+auction_name,recipe,num_of_agents,mean_optimal_count,mean_auction_count,count_ratio,mean_optimal_gft,mean_auction_gft,gft_ratio
+SBB Ascending Prices,1:1,100,49.96,49.32,98.71,25074.21,24913.53,99.36
+SBB Ascending Prices,1:1,1000,499.26,498.78,99.9,249367.39,249246.13,99.95
+SBB Ascending Prices,1:1:1,100,49.32,48.8,98.94,49262.09,49052.96,99.58
+SBB Ascending Prices,1:1:1,1000,500.24,499.76,99.9,500885.77,500692.97,99.96
+SBB Ascending Prices,2:1,100,49.22,48.7,98.94,24621.81,24427.52,99.21
+SBB Ascending Prices,2:1,1000,499.56,498.98,99.88,249462.43,249260.76,99.92
