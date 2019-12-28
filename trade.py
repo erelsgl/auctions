@@ -143,9 +143,9 @@ class TradeWithSinglePrice (Trade):
                 required_agents = self.ps_recipe[i]*num_of_deals
                 existing_agents = len(category)
                 if existing_agents == required_agents:
-                    s += "{}: all {} agents trade and pay {}\n".format(self.categories[i], existing_agents, self.prices[i])
+                    s += "{}: all {} agents trade and pay {}\n".format(category, existing_agents, price)
                 else:   # existing_agents > required_agents
-                    s += "{}: random {} out of {} agents trade and pay {}\n".format(self.categories[i], required_agents, existing_agents, self.prices[i])
+                    s += "{}: random {} out of {} agents trade and pay {}\n".format(category, required_agents, existing_agents, price)
         return s.rstrip()
 
 
