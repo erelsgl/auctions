@@ -158,7 +158,6 @@ def budget_balanced_ascending_auction_multiple_recipes(
         logger.info("%d units demanded by buyers, %d units offered by sellers, minimum is %d",
             num_units_demanded, num_units_offered, target_unit_count)
 
-        logger.info("\n## Step 1: balancing the sides")
         while True:
             logger.info("Prices: %s, Target unit count: %d", prices, target_unit_count)
 

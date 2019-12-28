@@ -27,3 +27,27 @@ market = Market([
 
 print(budget_balanced_ascending_auction_multiple_recipes(market,[[1,2]]))
 
+
+print("\n\n###### TEST TWO RECIPES: (1,0,1) and (0,1,2)")
+
+market = Market([
+    AgentCategory("onebuyer", [12, 13, 15, 17, 19]),
+    AgentCategory("twobuyer", [16, 18, 25, 27, 31]),
+    AgentCategory("seller", [-1, -2, -3, -4, -5, -7, -8, -10, -11]),
+])
+
+print(budget_balanced_ascending_auction_multiple_recipes(market,[[1,0,1],[0,1,2]]))
+
+
+
+print("\n\n###### TEST THREE RECIPES: (1,0,0,1) and (0,1,0,2) and  (0,0,1,3)")
+
+market = Market([
+    AgentCategory("onebuyer",   [13, 15, 17, 19]),
+    AgentCategory("twobuyer",   [16, 18, 25, 27, 31]),
+    AgentCategory("threebuyer", [30, 40, 50, 60]),
+    AgentCategory("seller", [-1, -2, -3, -4, -5, -7, -8, -10, -11, -12, -13, -14]),
+])
+
+print(budget_balanced_ascending_auction_multiple_recipes(market,[[1,0,0,1],[0,1,0,2],[0,0,1,3]]))
+
