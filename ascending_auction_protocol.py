@@ -8,7 +8,7 @@ Author: Erel Segal-Halevi
 Since:  2019-08
 """
 
-from agents import AgentCategory
+from agents import AgentCategory, EmptyCategoryException, MAX_VALUE
 from markets import Market
 from trade import TradeWithSinglePrice
 from dicttools import stringify
@@ -16,15 +16,9 @@ import prices
 from prices import PriceCrossesZeroException, AscendingPriceVector
 
 import math, logging, sys
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 # To enable tracing, set logger.setLevel(logging.INFO)
-
-MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
-
-class EmptyCategoryException(Exception):
-    pass
 
 
 def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterations=999999999)->TradeWithSinglePrice:

@@ -4,32 +4,34 @@
 function budget_balanced_ascending_auction
 Implementation of a multiple-clock strongly-budget-balanced ascending auction for a multi-lateral market.
 
+Allows multiple recipes, but only of the following kind:
+
+    [ [1,0,0,x], [0,1,0,y], [0,0,1,z] ]
+
+I.e., there are n-1 buyer categories and 1 seller category, and:
+* One agent of category 1 buys x units;
+* One agent of category 2 buys y units;
+* One agent of category 3 buys z units;
+etc.
+
 Author: Erel Segal-Halevi
 Since:  2019-08
 """
 
-from agents import AgentCategory
+from agents import AgentCategory, EmptyCategoryException, MAX_VALUE
 from markets import Market
 from trade import Trade
 import prices
 from prices import PriceCrossesZeroException, AscendingPriceVector
 
 import logging, sys
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 # To enable tracing, set logger.setLevel(logging.INFO)
 
-MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
-
-
-class EmptyCategoryException(Exception):
-    pass
-
-
 class TradeWithMultipleRecipes(Trade):
     """
-    Represents the outcome of budget_balanced_ascending_auction_multiple_recipes.
+    Represents the outcome of budget_balanced_ascending_auction.
     See there for details.
     """
     def __init__(self, categories:list, map_buyer_category_to_seller_count:list, prices:list):
@@ -80,13 +82,14 @@ class TradeWithMultipleRecipes(Trade):
         return s.rstrip()
 
 
-def budget_balanced_ascending_auction_multiple_recipes(
+def budget_balanced_ascending_auction(
         market:Market, ps_recipes: list)->TradeWithMultipleRecipes:
     """
     Calculate the trade and prices using generalized-ascending-auction.
     Allows multiple recipes, but only of the following kind:
     [ [1,0,0,x], [0,1,0,y], [0,0,1,z] ]
-    (i.e., one agent of: category 1 buys x units; category 2 buys y units; category 3 buys z units; etc.)
+    (i.e., there are n-1 buyer categories and 1 seller category.
+    One agent of category 1 buys x units; of category 2 buys y units; of category 3 buys z units; etc.)
 
     :param market:     contains a list of k categories, each containing several agents.
     :param ps_recipes: a list of lists of integers, one integer per category.
@@ -96,39 +99,39 @@ def budget_balanced_ascending_auction_multiple_recipes(
 
     >>> # ONE BUYER, ONE SELLER
     >>> market = Market([AgentCategory("buyer", [9.]),  AgentCategory("seller", [-4.])])
-    >>> print(market); print(budget_balanced_ascending_auction_multiple_recipes(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
     Traders: [buyer: [9.0], seller: [-4.0]]
     No trade
 
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.])])
-    >>> print(market); print(budget_balanced_ascending_auction_multiple_recipes(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
     Traders: [buyer: [9.0, 8.0], seller: [-4.0]]
     No trade
 
     >>> market = Market([AgentCategory("buyer", [9.]), AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction_multiple_recipes(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
     Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
     seller: [-3.0]: all 1 agents trade and pay -4.0
     buyer: [9.0]: all 1 agents trade and pay 4.0
 
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction_multiple_recipes(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
     Traders: [buyer: [9.0, 8.0], seller: [-3.0, -4.0]]
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -8.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
 
     >>> # ONE BUYER, TWO SELLERS
     >>> market = Market([AgentCategory("buyer", [9.]),  AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction_multiple_recipes(market, [[1,2]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,2]]))
     Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
     No trade
     >>> market = Market([AgentCategory("buyer", [9., 8., 7., 6.]),  AgentCategory("seller", [-6., -5., -4.,-3.,-2.,-1.])])
-    >>> print(market); print(budget_balanced_ascending_auction_multiple_recipes(market, [[1,2]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,2]]))
     Traders: [buyer: [9.0, 8.0, 7.0, 6.0], seller: [-1.0, -2.0, -3.0, -4.0, -5.0, -6.0]]
     seller: [-1.0, -2.0, -3.0, -4.0]: random 2 out of 4 agents trade and pay -4.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
     """
-    logger.info("\n#### Budget-Balanced Ascending Auction with Multiple Recipes\n")
+    logger.info("\n#### Budget-Balanced Ascending Auction with Multiple Recipes - n-1 buyer categories\n")
     logger.info(market)
     logger.info("Procurement-set recipes: %s", ps_recipes)
 

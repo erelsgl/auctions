@@ -11,6 +11,8 @@ Since: 2019-08
 """
 
 
+MAX_VALUE=1000000    # an upper bound (not necessarily tight) on the agents' values.
+
 class AgentCategory:
     """
     Represents a category of single-parametric agents in a market, for example: "buyers".
@@ -112,6 +114,11 @@ class AgentCategory:
         import random
         values = [random.uniform(min_value,max_value) for _ in range(num_of_agents)]
         return AgentCategory(name, values)
+
+
+
+class EmptyCategoryException(Exception):
+    pass
 
 
 if __name__ == "__main__":
