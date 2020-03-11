@@ -189,43 +189,22 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
 
     remaining_market = market.clone()
     prices = AscendingPriceVector(num_categories, ps_recipe, -MAX_VALUE)
-    potential_ps = [math.inf] * num_categories
 
     # Functions for calculating the number of potential PS that can be supported by a category:
     fractional_potential_ps = lambda i_category: remaining_market.categories[i_category].size() / ps_recipe[i_category]
     integral_potential_ps   = lambda i_category: math.floor(remaining_market.categories[i_category].size() / ps_recipe[i_category])
 
     try:
-        for i_category in relevant_category_indices:
-            category = remaining_market.categories[i_category]
-            potential_ps[i_category] = integral_potential_ps(i_category)
-
-        target_ps_count = min(potential_ps)
-        logger.info("\n## Step 1: balancing the number of PS to %d", target_ps_count)
-        for i_category in relevant_category_indices:
-            category = remaining_market.categories[i_category]
-            while True:
-                num_of_agents = len(category)
-                logger.info("{}: {} agents remain".format(category.name, num_of_agents))
-                if num_of_agents==0:                                            raise EmptyCategoryException()
-                if integral_potential_ps(i_category) <= target_ps_count: break
-                prices.increase_price_up_to_balance(i_category, category.lowest_agent_value(), category.name)
-                category.remove_lowest_agent()
-            potential_ps[i_category] = integral_potential_ps(i_category)
-            logger.info("{}: price is now {}, {} agents remain, {} PS supported".format(category.name, prices[i_category], len(category), potential_ps[i_category]))
-
-        logger.info("\n## Step 2: balancing the price")
         while True:
             # find a category with a largest number of potential PS, and increase its price
             i_category = max(relevant_category_indices, key=fractional_potential_ps)
             category = remaining_market.categories[i_category]
-            logger.info("{} [start]: {} agents remain,  {} PS supported".format(category.name, category.size(), potential_ps[i_category]))
+            logger.info("{} before: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
             if category.size() == 0:    raise EmptyCategoryException()
 
             prices.increase_price_up_to_balance(i_category, category.lowest_agent_value(), category.name)
             category.remove_lowest_agent()
-            potential_ps[i_category] = integral_potential_ps(i_category)
-            logger.info("{} [ end ]: {} agents remain,  {} PS supported".format(category.name, category.size(), potential_ps[i_category]))
+            logger.info("{}  after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
 
     except PriceCrossesZeroException:
         logger.info("\nPrice crossed zero.")

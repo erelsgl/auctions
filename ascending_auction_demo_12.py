@@ -10,12 +10,12 @@ Since:  2019-08
 
 from markets import Market
 from agents import AgentCategory
-import ascending_auction_protocol
+import ascending_auction_protocol, prices
 from ascending_auction_protocol import budget_balanced_ascending_auction
 
 import logging
 ascending_auction_protocol.logger.setLevel(logging.INFO)
-
+prices.logger.setLevel(logging.INFO)
 
 print("\n\n###### RUNNING EXAMPLE FROM THE PAPER FOR TYPE (1,2)")
 
