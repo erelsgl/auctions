@@ -42,6 +42,9 @@ class AgentCategory:
         self.values = list(values)
         self.values.sort(reverse=True)
 
+    def size(self):
+        return len(self.values)
+
     def __len__(self):
         return len(self.values)
 

@@ -42,7 +42,7 @@ class AscendingPriceVector:
 
     def increase_price_up_to_balance(self, category_index:int, new_price:float, description:str):
         """
-        Increase the price of the given category to the given value.
+        Increase the price of the given agent-category to the given value.
         BUT, if the sum of prices crosses zero, the price will be increased only
         to the point where the sum is zero, and then an exception will be raised.
         :param key:
