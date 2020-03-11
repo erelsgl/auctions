@@ -149,7 +149,7 @@ def budget_balanced_ascending_auction(
     seller_category = remaining_market.categories[-1]
 
 
-    prices = AscendingPriceVector(2, [1, 1], -MAX_VALUE)
+    prices = AscendingPriceVector([1, 1], -MAX_VALUE)
     buyer_price_index = 0
     seller_price_index = 1
     # prices[0] represents the price for all buyer-categories per single unit.

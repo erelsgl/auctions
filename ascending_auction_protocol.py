@@ -13,7 +13,7 @@ from markets import Market
 from trade import TradeWithSinglePrice
 from dicttools import stringify
 import prices
-from prices import PriceCrossesZeroException, AscendingPriceVector
+from prices import AscendingPriceVector, PriceStatus
 
 import math, logging, sys
 logger = logging.getLogger(__name__)
@@ -188,31 +188,31 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
     logger.info("Procurement-set recipe: {}".format(ps_recipe))
 
     remaining_market = market.clone()
-    prices = AscendingPriceVector(num_categories, ps_recipe, -MAX_VALUE)
+    prices = AscendingPriceVector(ps_recipe, -MAX_VALUE)
 
     # Functions for calculating the number of potential PS that can be supported by a category:
     fractional_potential_ps = lambda i_category: remaining_market.categories[i_category].size() / ps_recipe[i_category]
     integral_potential_ps   = lambda i_category: math.floor(remaining_market.categories[i_category].size() / ps_recipe[i_category])
 
-    try:
-        while True:
-            # find a category with a largest number of potential PS, and increase its price
-            i_category = max(relevant_category_indices, key=fractional_potential_ps)
-            category = remaining_market.categories[i_category]
-            logger.info("{} before: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
-            if category.size() == 0:    raise EmptyCategoryException()
+    while True:
+        # find a category with a largest number of potential PS, and increase its price
+        i_category = max(relevant_category_indices, key=fractional_potential_ps)
+        category = remaining_market.categories[i_category]
+        logger.info("{} before: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
 
-            prices.increase_price_up_to_balance(i_category, category.lowest_agent_value(), category.name)
-            category.remove_lowest_agent()
-            logger.info("{}  after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
+        if category.size() == 0:
+            logger.info("\nOne of the categories became empty. No trade!")
+            logger.info("  Final price-per-unit vector: %s", prices)
+            break
 
-    except PriceCrossesZeroException:
-        logger.info("\nPrice crossed zero.")
-        logger.info("  Final price-per-unit vector: %s", prices)
+        prices.increase_price_up_to_balance(i_category, category.lowest_agent_value(), category.name)
+        if prices.status == PriceStatus.STOPPED_AT_ZERO_SUM:
+            logger.info("\nPrice crossed zero.")
+            logger.info("  Final price-per-unit vector: %s", prices)
+            break
 
-    except EmptyCategoryException:
-        logger.info("\nOne of the categories became empty. No trade!")
-        logger.info("  Final price-per-unit vector: %s", prices)
+        category.remove_lowest_agent()
+        logger.info("{}  after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
 
     logger.info(remaining_market)
     return TradeWithSinglePrice(remaining_market.categories, ps_recipe, prices.prices)
