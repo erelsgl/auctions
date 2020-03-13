@@ -15,6 +15,7 @@ Since: 2019-08
 
 import math
 from agents import AgentCategory
+from typing import *
 
 class Trade:
     """
@@ -97,7 +98,7 @@ class TradeWithSinglePrice (Trade):
     >>> t.gain_from_trade(including_auctioneer=False)
     3.0
     """
-    def __init__(self, categories:list, ps_recipe:list, prices:list):
+    def __init__(self, categories:List[AgentCategory], ps_recipe:List[int], prices:List[float]):
         self.categories = categories
         self.num_categories = len(categories)
         self.prices = prices
@@ -132,15 +133,15 @@ class TradeWithSinglePrice (Trade):
         return gft
 
     def __repr__(self):
-        num_of_deals = self.num_of_deals()
-        if num_of_deals==0:
+        if self.num_of_deals_cache==0:
             return "No trade"
         s = ""
-        for i in range(self.num_categories):
-            if self.ps_recipe[i]>0:
-                category = self.categories[i]
-                price = self.prices[i]
-                required_agents = self.ps_recipe[i]*num_of_deals
+        for category_index in range(self.num_categories):
+            count_in_recipe = self.ps_recipe[category_index]
+            if count_in_recipe>0:
+                category = self.categories[category_index]
+                price = self.prices[category_index]
+                required_agents = count_in_recipe*self.num_of_deals_cache
                 existing_agents = len(category)
                 if existing_agents == required_agents:
                     s += "{}: all {} agents trade and pay {}\n".format(category, existing_agents, price)

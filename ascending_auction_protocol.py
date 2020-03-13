@@ -181,38 +181,37 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
 
     logger.info("\n#### Budget-Balanced Ascending Auction\n")
     logger.info(market)
+    logger.info("Procurement-set recipe: {}".format(ps_recipe))
 
     optimal_trade = market.optimal_trade(ps_recipe, max_iterations=max_iterations)[0]
-
     logger.info("For comparison, the optimal trade is: %s\n", optimal_trade)
-    logger.info("Procurement-set recipe: {}".format(ps_recipe))
 
     remaining_market = market.clone()
     prices = AscendingPriceVector(ps_recipe, -MAX_VALUE)
 
     # Functions for calculating the number of potential PS that can be supported by a category:
-    fractional_potential_ps = lambda i_category: remaining_market.categories[i_category].size() / ps_recipe[i_category]
-    integral_potential_ps   = lambda i_category: math.floor(remaining_market.categories[i_category].size() / ps_recipe[i_category])
+    fractional_potential_ps = lambda category_index: remaining_market.categories[category_index].size() / ps_recipe[category_index]
+    integral_potential_ps   = lambda category_index: math.floor(remaining_market.categories[category_index].size() / ps_recipe[category_index])
 
     while True:
         # find a category with a largest number of potential PS, and increase its price
-        i_category = max(relevant_category_indices, key=fractional_potential_ps)
-        category = remaining_market.categories[i_category]
-        logger.info("{} before: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
+        main_category_index = max(relevant_category_indices, key=fractional_potential_ps)
+        main_category = remaining_market.categories[main_category_index]
+        logger.info("{} before: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
 
-        if category.size() == 0:
+        if main_category.size() == 0:
             logger.info("\nOne of the categories became empty. No trade!")
             logger.info("  Final price-per-unit vector: %s", prices)
             break
 
-        prices.increase_price_up_to_balance(i_category, category.lowest_agent_value(), category.name)
+        prices.increase_price_up_to_balance(main_category_index, main_category.lowest_agent_value(), main_category.name)
         if prices.status == PriceStatus.STOPPED_AT_ZERO_SUM:
             logger.info("\nPrice crossed zero.")
             logger.info("  Final price-per-unit vector: %s", prices)
             break
 
-        category.remove_lowest_agent()
-        logger.info("{}  after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(i_category)))
+        main_category.remove_lowest_agent()
+        logger.info("{}  after: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
 
     logger.info(remaining_market)
     return TradeWithSinglePrice(remaining_market.categories, ps_recipe, prices.prices)
@@ -223,4 +222,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
 if __name__ == "__main__":
     import doctest
     (failures,tests) = doctest.testmod(report=True)
-    print ("{} failures, {} tests".format(failures,tests))
+    print ("doctest: {} failures, {} tests".format(failures,tests))
+
+    import unittest
+    unittest.main(module="ascending_auction_test")

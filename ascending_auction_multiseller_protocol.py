@@ -23,9 +23,9 @@ Since:  2020-03
 
 from agents import AgentCategory, EmptyCategoryException, MAX_VALUE
 from markets import Market
-from trade import Trade
-import prices
-from prices import PriceCrossesZeroException, AscendingPriceVector
+from trade import Trade, TradeWithSinglePrice
+from prices import AscendingPriceVector, SimultaneousAscendingPriceVectors, PriceStatus
+from typing import *
 
 import logging, sys
 logger = logging.getLogger(__name__)
@@ -37,21 +37,18 @@ class TradeWithMultipleRecipes(Trade):
     Represents the outcome of budget_balanced_ascending_auction.
     See there for details.
     """
-    def __init__(self, categories:list, map_buyer_category_to_seller_count:list, prices:list):
+    def __init__(self, categories:List[AgentCategory], ps_recipes:List[List[int]], prices:List[float]):
         self.categories = categories
-        self.seller_category = categories[-1]
-        self.buyer_categories = categories[:-1]
+        self.num_categories = len(categories)
+        self.ps_recipes = ps_recipes
+        self.map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(self.num_categories, ps_recipes)
         self.prices = prices
-        self.seller_price = prices[-1]
-        self.buyer_prices = prices[:-1]
-        self.num_units_offered  = len(self.seller_category)
-        self.num_units_demanded = sum([len(self.buyer_categories[i])*map_buyer_category_to_seller_count[i] for i in range(len(self.buyer_categories))])
-        self.num_of_deals_cache = min(self.num_units_offered, self.num_units_demanded)
+        self.num_of_deals_cache = None   # TODO: calculate
 
     def num_of_deals(self):
         return self.num_of_deals_cache
 
-    def gain_from_trade(self, including_auctioneer=True):
+    def gain_from_trade(self, including_auctioneer:bool=True):
         """
         Calculate the total gain-from-trade.
         :param including_auctioneer:  If true, the result includes the profit of the auctioneer.
@@ -64,29 +61,27 @@ class TradeWithMultipleRecipes(Trade):
         raise NotImplementedError("TradeWithMultipleRecipes.gain_from_trade is not implemented yet")
 
     def __repr__(self):
-        num_of_deals = self.num_of_deals()
-        if num_of_deals==0:
+        if self.num_of_deals_cache==0:
             return "No trade"
         s = ""
-
-        category = self.seller_category
-        price = self.seller_price
-        if self.num_units_offered <= self.num_units_demanded:
-            s += "{}: all {} agents trade and pay {}\n".format(category, len(category), price)
-        else:
-            s += "{}: random {} out of {} agents trade and pay {}\n".format(category, self.num_units_demanded, len(category), price)
-
-        if self.num_units_demanded <= self.num_units_offered:
-            for (category,price) in zip(self.buyer_categories, self.buyer_prices):
-                s += "{}: all {} agents trade and pay {}\n".format(category, len(category), price)
-        else:
-            raise ValueError("Too many demanded units - I do not know how to handle this now")
-
+        for category_index in range(self.num_categories):
+            recipe_indices = self.map_category_index_to_recipe_indices[category_index]
+            if len(recipe_indices)>0:
+                category = self.categories[category_index]
+                existing_agents = len(category)
+                price = self.prices[category_index]
+                s += "{}: some of the {} agents trade and pay {}\n".format(category, existing_agents, price)
+                # required_agents = self.ps_recipe[i]*self.num_of_deals_cache
+                # existing_agents = len(category)
+                # if existing_agents == required_agents:
+                #     s += "{}: all {} agents trade and pay {}\n".format(category, existing_agents, price)
+                # else:   # existing_agents > required_agents
+                #     s += "{}: random {} out of {} agents trade and pay {}\n".format(category, required_agents, existing_agents, price)
         return s.rstrip()
 
 
 def budget_balanced_ascending_auction(
-        market:Market, ps_recipes: list)->TradeWithMultipleRecipes:
+        market:Market, ps_recipes: List[List])->TradeWithMultipleRecipes:
     """
     Calculate the trade and prices using generalized-ascending-auction.
     Allows multiple recipes, but they must all be binary, and must all start with 1. E.g.:
@@ -123,122 +118,113 @@ def budget_balanced_ascending_auction(
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -8.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
     """
-    logger.info("\n#### Budget-Balanced Ascending Auction with Multiple Recipes - n-1 seller categories\n")
+
+    num_recipes = len(ps_recipes)
+    num_categories = market.num_categories
+    for i, ps_recipe in enumerate(ps_recipes):
+        if len(ps_recipe) != num_categories:
+            raise ValueError(
+                "There are {} categories but {} elements in PS recipe #{}".
+                    format(num_categories, len(ps_recipe), i))
+        if any(r!=1 for r in ps_recipe):
+            raise ValueError("Currently, the multi-recipe protocol supports only recipes of ones; {} was given".format(ps_recipe))
+
+
+    logger.info("\n#### Budget-Balanced Ascending Auction\n")
     logger.info(market)
-    logger.info("Procurement-set recipes: %s", ps_recipes)
+    logger.info("Procurement-set recipes: {}".format(ps_recipes))
 
-    # map_buyer_category_to_seller_count = _convert_recipes_to_seller_counts(ps_recipes, market.num_categories)
-    # logger.info("Map buyer category index to seller count: %s", map_buyer_category_to_seller_count)
-    #
-    # # NOTE: Calculating the optimal trade cannot be done greedily -
-    # #         it requires solving a restricted instance of Knapsack.
-    # # optimal_trade = market.optimal_trade(ps_recipe, max_iterations=max_iterations)[0]
-    # # logger.info("For comparison, the optimal trade is: %s\n", optimal_trade)
-    #
-    # remaining_market = market.clone()
-    # buyer_categories = remaining_market.categories[:-1]
-    # num_buyer_categories = market.num_categories-1
-    # seller_category = remaining_market.categories[-1]
-    #
-    #
-    # prices = AscendingPriceVector([1, 1], -MAX_VALUE)
-    # buyer_price_index = 0
-    # seller_price_index = 1
-    # # prices[0] represents the price for all buyer-categories per single unit.
-    # # prices[1] represents the price for all sellers.
-    # try:
-    #     num_units_offered  = len(seller_category)
-    #     num_units_demanded = sum([len(buyer_categories[i])*map_buyer_category_to_seller_count[i] for i in range(num_buyer_categories)])
-    #     target_unit_count  = min(num_units_demanded, num_units_offered)
-    #     logger.info("%d units demanded by buyers, %d units offered by sellers, minimum is %d",
-    #         num_units_demanded, num_units_offered, target_unit_count)
-    #
-    #     while True:
-    #         logger.info("Prices: %s, Target unit count: %d", prices, target_unit_count)
-    #
-    #         price_index = buyer_price_index
-    #         while True:
-    #             num_units_demanded = sum([len(buyer_categories[i]) * map_buyer_category_to_seller_count[i] for i in range(num_buyer_categories)])
-    #             logger.info("  Buyers demand %d units", num_units_demanded)
-    #             if num_units_demanded == 0:                 raise EmptyCategoryException()
-    #             if num_units_demanded <= target_unit_count: break
-    #             map_buyer_category_to_lowest_value = [category.lowest_agent_value() for category in buyer_categories]
-    #             logger.debug("  map_buyer_category_to_lowest_value=%s", map_buyer_category_to_lowest_value)
-    #             map_buyer_category_to_lowest_value_per_unit = [value / count for value,count in zip(map_buyer_category_to_lowest_value,map_buyer_category_to_seller_count)]
-    #             logger.debug("  map_buyer_category_to_lowest_value_per_unit=%s", map_buyer_category_to_lowest_value_per_unit)
-    #             category_index_with_lowest_value_per_unit = min(range(num_buyer_categories), key=lambda i:map_buyer_category_to_lowest_value_per_unit[i])
-    #             category_with_lowest_value_per_unit = buyer_categories[category_index_with_lowest_value_per_unit]
-    #             lowest_value_per_unit = map_buyer_category_to_lowest_value_per_unit[category_index_with_lowest_value_per_unit]
-    #             logger.info("  lowest value per unit is %f, of category %d (%s)", lowest_value_per_unit, category_index_with_lowest_value_per_unit, category_with_lowest_value_per_unit.name)
-    #             prices.increase_price_up_to_balance(price_index, category_with_lowest_value_per_unit.lowest_agent_value()/map_buyer_category_to_seller_count[category_index_with_lowest_value_per_unit], category_with_lowest_value_per_unit.name)
-    #             category_with_lowest_value_per_unit.remove_lowest_agent()
-    #
-    #         category    = seller_category
-    #         # logger.info("\n### Step 1a: balancing the sellers (%s)", category.name)
-    #         price_index = seller_price_index
-    #         while True:
-    #             num_units_offered = len(category)
-    #             logger.info("  Sellers offer %d units", num_units_offered)
-    #             if num_units_offered == 0:                 raise EmptyCategoryException()
-    #             if num_units_offered <= target_unit_count: break
-    #             prices.increase_price_up_to_balance(price_index, category.lowest_agent_value(), category.name)
-    #             category.remove_lowest_agent()
-    #
-    #         target_unit_count -= 1
+    map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(num_categories, ps_recipes)
+    relevant_category_indices = [i for i in range(num_categories) if len(map_category_index_to_recipe_indices[i])>0]
 
-    # except PriceCrossesZeroException:
-    #     logger.info("\nPrice crossed zero.")
-    #     logger.info("  Final price-per-unit vector: %s", prices)
-    #
-    # except EmptyCategoryException:
-    #     logger.info("\nOne of the categories became empty. No trade!")
-    #     logger.info("  Final price-per-unit vector: %s", prices)
+    # Calculating the optimal trade with multiple recipes is left for future work.
+    # optimal_trade = market.optimal_trade(ps_recipe)[0]
+    # logger.info("For comparison, the optimal trade is: %s\n", optimal_trade)
 
-    # # Construct the final price-vector:
-    # buyer_price_per_unit = prices[buyer_price_index]
-    # seller_price_per_unit = prices[seller_price_index]
-    # final_prices = \
-    #     [buyer_price_per_unit * unit_count for unit_count in map_buyer_category_to_seller_count] + \
-    #     [seller_price_per_unit]
-    # logger.info("  %s", remaining_market)
-    # return TradeWithMultipleRecipes(remaining_market.categories, map_buyer_category_to_seller_count, final_prices)
+    remaining_market = market.clone()
+    price_vectors = [AscendingPriceVector(ps_recipe, -MAX_VALUE) for ps_recipe in ps_recipes]
+    prices = SimultaneousAscendingPriceVectors(price_vectors)
+
+    # Functions for calculating the number of potential PS that can be supported by a category:
+    # Currently we assume a recipe of ones, so the number of potential PS is simply the category size:
+    fractional_potential_ps = lambda category_index: remaining_market.categories[category_index].size()
+    integral_potential_ps   = lambda category_index: remaining_market.categories[category_index].size()
+
+    while True:
+        # find a category with a largest number of potential PS, and increase its price
+        main_category_index = max(relevant_category_indices, key=fractional_potential_ps)
+        main_category = remaining_market.categories[main_category_index]
+        logger.info("{} before: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
+
+        # TODO: Category that becomes empty rules out only recipes that contain it - other recipes may remain active!
+        # if category.size() == 0:
+        #     logger.info("\nOne of the categories became empty. No trade!")
+        #     logger.info("  Final price-per-unit vector: %s", prices)
+        #     break
+
+        increases = _calculate_price_increases(remaining_market, ps_recipes, map_category_index_to_recipe_indices, main_category_index)
+        prices.increase_prices(increases)
+        map_category_index_to_price = prices.map_category_index_to_price()
+
+        if prices.status == PriceStatus.STOPPED_AT_ZERO_SUM:
+            logger.info("\nPrice crossed zero.")
+            logger.info("  Final price-per-unit vector: %s", map_category_index_to_price)
+            break
+
+        for category_index in relevant_category_indices:
+            category = remaining_market.categories[category_index]
+            if category.lowest_agent_value() <= map_category_index_to_price[category_index]:
+                category.remove_lowest_agent()
+                logger.info("{} after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(category_index)))
+
+    logger.info(remaining_market)
+    return TradeWithMultipleRecipes(remaining_market.categories, ps_recipes, map_category_index_to_price)
 
 
-
-# def _convert_recipes_to_seller_counts(ps_recipes: list, num_categories:int)->list:
-#     """
-#     >>> logger.setLevel(logging.INFO)
-#     >>> _convert_recipes_to_seller_counts([[1,0,1],[0,1,2]], 3)
-#     [1, 2]
-#     >>> _convert_recipes_to_seller_counts([[1,0,0,3],[0,1,0,4],[0,0,1,5]], 4)
-#     [3, 4, 5]
-#     """
-#     map_buyer_category_to_seller_count = [0]*(num_categories-1)
-#     for ps_recipe in ps_recipes:
-#         if type(ps_recipe)!=list:
-#             raise ValueError("Each PS recipe must be a list")
-#         if len(ps_recipe) != num_categories:
-#             raise ValueError(
-#                 "There are {} categories but {} elements in the PS recipe {}".
-#                     format(num_categories, len(ps_recipe), ps_recipe))
-#         ps_recipe_buyers = ps_recipe[:-1]
-#         ps_recipe_sellers = ps_recipe[-1]
-#         nonzero_element_found = False
-#         for i in range(len(ps_recipe_buyers)):
-#             if ps_recipe_buyers[i]==0:
-#                 continue
-#             if nonzero_element_found:
-#                 raise ValueError("i={}: Cannot handle a recipe with many nonzeros: {}".format(i, ps_recipe))
-#             if ps_recipe_buyers[i]!=1:
-#                 raise ValueError("i={}: Cannot handle a recipe with more than one buyer: {}".format(i, ps_recipe))
-#             if ps_recipe_buyers[i]==1:
-#                 if map_buyer_category_to_seller_count[i]!=0:
-#                     raise ValueError("i={}: Cannot handle two recipes with a buyer in the same place: {}".format(i, ps_recipe))
-#                 map_buyer_category_to_seller_count[i] = ps_recipe_sellers
-#                 nonzero_element_found=True
-#     return map_buyer_category_to_seller_count
+def _map_category_index_to_containing_recipe_indices(num_categories: int, ps_recipes:List[List]):
+    """
+    >>> _map_category_index_to_containing_recipe_indices(5, [ [1,1,0,0,0], [1,0,1,1,0] ])
+    [[0, 1], [0], [1], [1], []]
+    """
+    num_recipes = len(ps_recipes)
+    return [
+        [recipe_index for recipe_index in range(num_recipes) if ps_recipes[recipe_index][category_index] > 0]
+        for category_index in range(num_categories)
+    ]
 
 
+def _calculate_price_increases(market:Market, ps_recipes:List[List], map_category_index_to_recipe_indices:List[List], main_category_index:int):
+    """
+    Calculate the pairs (category_index, new_price) for simultaneous price-increase for different PS recipes.
+
+    >>> market = Market([AgentCategory("buyer", [9,8,7,6]),  AgentCategory("seller", [-1,-2,-3,-4]),  AgentCategory("sel", [-5,-6,-7,-8]),  AgentCategory("ler", [-9,-10,-11,-12])])
+    >>> ps_recipes = [[1,1,0,0],[1,0,1,1]]
+    >>> map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(market.num_categories, ps_recipes)
+    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=0)
+    [(0, 6, 'buyer'), (0, 6, 'buyer')]
+    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=1)
+    [(1, -4, 'seller'), (2, -8, 'sel')]
+    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=2)
+    [(1, -4, 'seller'), (2, -8, 'sel')]
+    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=3)
+    [(1, -4, 'seller'), (3, -12, 'ler')]
+    """
+    increases = []
+    main_category = market.categories[main_category_index]
+    for (recipe_index, recipe) in enumerate(ps_recipes):
+        if recipe[main_category_index] > 0:  # If a recipe contains the maximum-size category - increase the category's price in this recipe's vector.
+            increases.append((main_category_index, main_category.lowest_agent_value(), main_category.name))
+        else:  # Otherwise, increase some other category, such that the sum of all recipes main_category the same
+            possible_other_category_indices = [
+                category_index for category_index in range(market.num_categories)
+                if map_category_index_to_recipe_indices[category_index] == [recipe_index]
+            ]
+            if len(possible_other_category_indices)==0:
+                raise ValueError("Cannot find a category that is unique to this recipe!")
+            other_category_index = possible_other_category_indices[0]
+            other_category = market.categories[other_category_index]
+            increases.append((other_category_index, other_category.lowest_agent_value(), other_category.name))
+    return increases
 
 
 

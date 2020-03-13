@@ -147,8 +147,8 @@ class SimultaneousAscendingPriceVectors:
         for v in vectors:
             if v.num_categories != num_categories:
                 raise ValueError("Different category counts: {} vs {}".format(num_categories, v.num_categories))
-            if v.price_sum() != price_sum:
-                raise ValueError("Different initial price-sum counts: {} vs {}".format(price_sum, v.price_sum()))
+            # if v.price_sum() != price_sum:
+            #     raise ValueError("Different initial price-sums: {} vs {}".format(price_sum, v.price_sum()))
 
         self.vectors = vectors
         self.num_categories = num_categories
@@ -156,6 +156,32 @@ class SimultaneousAscendingPriceVectors:
 
     def price_sum(self):
         return self.vectors[0].price_sum()
+
+    def map_category_index_to_price(self):
+        """
+        >>> p1 = AscendingPriceVector([1, 1, 0, 0], -1000)
+        >>> p2 = AscendingPriceVector([1, 0, 1, 1], -1000)
+        >>> pv = SimultaneousAscendingPriceVectors([p1, p2])
+        >>> pv.map_category_index_to_price()
+        [-1000, -1000, -1000, -1000]
+        >>> pv.increase_prices ([(1,10,"seller"), (2,10,"half-seller-A")])
+        >>> pv.map_category_index_to_price()
+        [-1000, -990.0, 10.0, -1000]
+        >>> pv.increase_prices ([(1,10,"seller"), (3,10,"half-seller-B")])
+        >>> pv.map_category_index_to_price()
+        [-1000, 10.0, 10.0, 0.0]
+        """
+        result = [None]*self.num_categories
+        for vector in self.vectors:
+            for category_index in range(self.num_categories):
+                if vector.ps_recipe[category_index] > 0:
+                    if result[category_index] is None:
+                        result[category_index] = vector.prices[category_index]
+                    elif result[category_index] != vector.prices[category_index]:
+                        raise ValueError("Inconsistent prices for category {}: {} vs {}".format(category_index, result[category_index], vector.prices[category_index]))
+                    else:
+                        pass
+        return result
 
     def __getitem__(self, vector_index:int):
         return self.vectors[vector_index]
