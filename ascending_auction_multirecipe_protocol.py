@@ -27,7 +27,7 @@ from trade import Trade, TradeWithSinglePrice
 from prices import AscendingPriceVector, SimultaneousAscendingPriceVectors, PriceStatus
 from typing import *
 
-import logging, sys
+import logging, sys, math
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 # To enable tracing, set logger.setLevel(logging.INFO)
@@ -41,9 +41,30 @@ class TradeWithMultipleRecipes(Trade):
         self.categories = categories
         self.num_categories = len(categories)
         self.ps_recipes = ps_recipes
+        self.num_recipes = len(ps_recipes)
         self.map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(self.num_categories, ps_recipes)
         self.prices = prices
-        self.num_of_deals_cache = None   # TODO: calculate
+
+        ps_supported_by_common_categories = MAX_VALUE
+        ps_supported_by_unique_categories = 0
+        has_unique_categories = False
+        for (category_index, category) in enumerate(self.categories):
+            ps_supported_by_current_category = category.size()  # Currently all recipes are binary
+            recipe_indices = self.map_category_index_to_recipe_indices[category_index]
+            if len(recipe_indices)==self.num_recipes:
+                ps_supported_by_common_categories = min(ps_supported_by_common_categories, ps_supported_by_current_category)
+            elif len(recipe_indices)==1:
+                ps_supported_by_unique_categories += ps_supported_by_current_category
+                has_unique_categories = True
+            elif len(recipe_indices) == 0:
+                pass   # irrelevant category
+            else:
+                raise ValueError("Currently, only unique or common categories are supported; but category {} appears only in recipes {}".format(category_index, recipe_indices))
+
+        if has_unique_categories:
+            self.num_of_deals_cache = min(ps_supported_by_unique_categories, ps_supported_by_common_categories)
+        else:
+            self.num_of_deals_cache = ps_supported_by_common_categories
 
     def num_of_deals(self):
         return self.num_of_deals_cache
@@ -120,14 +141,17 @@ def budget_balanced_ascending_auction(
     """
 
     num_recipes = len(ps_recipes)
+    if num_recipes<1:
+        raise ValueError("Empty list of recipes")
+
     num_categories = market.num_categories
     for i, ps_recipe in enumerate(ps_recipes):
         if len(ps_recipe) != num_categories:
             raise ValueError(
                 "There are {} categories but {} elements in PS recipe #{}".
                     format(num_categories, len(ps_recipe), i))
-        if any(r!=1 for r in ps_recipe):
-            raise ValueError("Currently, the multi-recipe protocol supports only recipes of ones; {} was given".format(ps_recipe))
+        if any((r!=1 and r!=0) for r in ps_recipe):
+            raise ValueError("Currently, the multi-recipe protocol supports only recipes of zeros and ones; {} was given".format(ps_recipe))
 
 
     logger.info("\n#### Budget-Balanced Ascending Auction\n")
@@ -154,11 +178,23 @@ def budget_balanced_ascending_auction(
         # find a category with a largest number of potential PS, and increase its price
         main_category_index = max(relevant_category_indices, key=fractional_potential_ps)
         main_category = remaining_market.categories[main_category_index]
+        main_category_recipe_indices = map_category_index_to_recipe_indices[main_category_index]
         logger.info("{} before: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
 
         # TODO: Category that becomes empty rules out only recipes that contain it - other recipes may remain active!
-        # if category.size() == 0:
-        #     logger.info("\nOne of the categories became empty. No trade!")
+        if main_category.size() == 0:
+            if len(main_category_recipe_indices)==num_recipes:
+                logger.info("\nThe common %s category became empty - no trade!", main_category.name)
+                logger.info("  Final price-per-unit vector: %s", prices)
+                break
+            else:
+                logger.info("\nThe %s category became empty - no trade in recipes %s", main_category.name, main_category_recipe_indices)
+                remaining_recipes = [ps_recipe for (recipe_index, ps_recipe) in enumerate(ps_recipes) if recipe_index not in main_category_recipe_indices]
+                logger.info("Recursing with the remaining recipes: %s", remaining_recipes)
+                return budget_balanced_ascending_auction(market, remaining_recipes)
+
+            logger.info("\nThe category became empty! TODO")
+            continue
         #     logger.info("  Final price-per-unit vector: %s", prices)
         #     break
 
@@ -173,7 +209,7 @@ def budget_balanced_ascending_auction(
 
         for category_index in relevant_category_indices:
             category = remaining_market.categories[category_index]
-            if category.lowest_agent_value() <= map_category_index_to_price[category_index]:
+            if category.size()>0 and category.lowest_agent_value() <= map_category_index_to_price[category_index]:
                 category.remove_lowest_agent()
                 logger.info("{} after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(category_index)))
 

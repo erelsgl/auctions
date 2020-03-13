@@ -119,7 +119,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
         logger.info("{} before: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
 
         if main_category.size() == 0:
-            logger.info("\nOne of the categories became empty. No trade!")
+            logger.info("\nThe %s category became empty - no trade!", main_category.name)
             logger.info("  Final price-per-unit vector: %s", prices)
             break
 

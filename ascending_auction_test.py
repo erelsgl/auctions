@@ -10,7 +10,6 @@ Since:  2019-08
 from markets import Market
 from agents import AgentCategory, MAX_VALUE
 import ascending_auction_protocol, prices
-from ascending_auction_protocol import budget_balanced_ascending_auction
 
 import logging
 ascending_auction_protocol.logger.setLevel(logging.WARNING)
@@ -24,7 +23,7 @@ class TestAscendingAuction(unittest.TestCase):
     ## Helper functions:
 
     def _check_market(self, market: Market, ps_recipe:List[int], expected_num_of_deals:int, expected_prices:List[float]):
-        trade = budget_balanced_ascending_auction(market, ps_recipe)
+        trade = ascending_auction_protocol.budget_balanced_ascending_auction(market, ps_recipe)
         self.assertEqual(trade.num_of_deals(), expected_num_of_deals)
         self.assertEqual(trade.prices        , expected_prices      )
 
@@ -139,6 +138,6 @@ class TestAscendingAuction(unittest.TestCase):
             expected_num_of_deals=1, expected_prices=[8,-MAX_VALUE,-8])
 
 if __name__ == '__main__':
-    unittest.main(module="ascending_auction_test")
+    unittest.main()
 
 

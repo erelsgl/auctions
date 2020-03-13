@@ -207,12 +207,14 @@ class SimultaneousAscendingPriceVectors:
         >>> str(pv)
         "['[10.0, -160.0, -1000, -1000]', '[10.0, -1000, -80.0, -80.0]'] PriceStatus.STOPPED_AT_AGENT_VALUE"
         """
+        logger.info("  Prices before increase: %s", self.map_category_index_to_price())
+        logger.info("  Planned increase: %s", increases)
         new_sums = [0]*len(self.vectors)
         for vector_index, vector in enumerate(self.vectors):
             (category_index, new_price, _) = increases[vector_index]
             new_sums[vector_index] = vector.price_sum_after_increase(category_index, new_price)
         min_new_sum = min(0, min(new_sums))
-        logger.info("New sums: %s.  Price-increase upper-bounded by %f", new_sums, min_new_sum)
+        logger.info("  Price-sums after increase: %s.  Min sum: %f", new_sums, min_new_sum)
 
         for vector_index, vector in enumerate(self.vectors):
             (category_index, new_price, description) = increases[vector_index]

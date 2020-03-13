@@ -103,7 +103,7 @@ class TradeWithSinglePrice (Trade):
         self.num_categories = len(categories)
         self.prices = prices
         self.ps_recipe = ps_recipe
-        self.num_of_deals_cache = min([math.floor(len(category) / count)
+        self.num_of_deals_cache = min([math.floor(category.size() / count)
              for (category, count) in zip(self.categories, self.ps_recipe)
              if count > 0])
 
