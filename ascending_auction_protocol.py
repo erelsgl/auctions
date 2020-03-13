@@ -31,10 +31,6 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
     :return: Trade object, representing the trade and prices.
 
     >>> # ONE BUYER, ONE SELLER
-    >>> market = Market([AgentCategory("buyer", [9.]),  AgentCategory("seller", [-4.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
-    Traders: [buyer: [9.0], seller: [-4.0]]
-    No trade
 
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
@@ -47,70 +43,20 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
     seller: [-4.0]: all 1 agents trade and pay -8.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
 
-    >>> market = Market([AgentCategory("seller", [-4.,-3.]), AgentCategory("buyer", [9.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
-    Traders: [seller: [-3.0, -4.0], buyer: [9.0]]
-    No trade
-
-    >>> market = Market([AgentCategory("buyer", [9.]), AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
-    Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
-    buyer: [9.0]: all 1 agents trade and pay 4.0
-    seller: [-3.0]: all 1 agents trade and pay -4.0
-
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.,-3.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
     Traders: [buyer: [9.0, 8.0], seller: [-3.0, -4.0]]
     buyer: [9.0]: all 1 agents trade and pay 8.0
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -8.0
 
-    >>> market = Market([AgentCategory("seller", [-4.,-3.]), AgentCategory("buyer", [9.,8.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
-    Traders: [seller: [-3.0, -4.0], buyer: [9.0, 8.0]]
-    seller: [-3.0]: all 1 agents trade and pay -4.0
-    buyer: [9.0, 8.0]: random 1 out of 2 agents trade and pay 4.0
-
-    >>> # ALL POSITIVE VALUES
-    >>> market = Market([AgentCategory("buyer1", [4.,3.]), AgentCategory("buyer2", [9.,8.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
-    Traders: [buyer1: [4.0, 3.0], buyer2: [9.0, 8.0]]
-    buyer1: [4.0]: all 1 agents trade and pay 3.0
-    buyer2: [9.0, 8.0]: random 1 out of 2 agents trade and pay -3.0
-
-    >>> # ALL NEGATIVE VALUES
-    >>> market = Market([AgentCategory("seller1", [-4.,-3.]), AgentCategory("seller2", [-9.,-8.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1]))
-    Traders: [seller1: [-3.0, -4.0], seller2: [-8.0, -9.0]]
-    No trade
-
     >>> # ONE BUYER, ONE SELLER, ONE MEDIATOR
+
     >>> market = Market([AgentCategory("seller", [-4.,-3.]), AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,1]))
     Traders: [seller: [-3.0, -4.0], buyer: [9.0, 8.0], mediator: [-1.0, -2.0]]
     seller: [-3.0]: all 1 agents trade and pay -4.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
     mediator: [-1.0, -2.0]: random 1 out of 2 agents trade and pay -4.0
-
-    >>> market = Market([AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.]), AgentCategory("seller", [-4.,-3.,-10.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,1]))
-    Traders: [buyer: [9.0, 8.0], mediator: [-1.0, -2.0], seller: [-3.0, -4.0, -10.0]]
-    buyer: [9.0]: all 1 agents trade and pay 8.0
-    mediator: [-1.0]: all 1 agents trade and pay -2.0
-    seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -6.0
-
-    >>> market = Market([AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.]), AgentCategory("seller", [-4.,-3.,-5.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,1]))
-    Traders: [buyer: [9.0, 8.0], mediator: [-1.0, -2.0], seller: [-3.0, -4.0, -5.0]]
-    buyer: [9.0]: all 1 agents trade and pay 8.0
-    mediator: [-1.0, -2.0]: random 1 out of 2 agents trade and pay -3.0
-    seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -5.0
-
-    >>> market = Market([AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-1.,-2.]), AgentCategory("seller", [-4.,-3.,-2.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,1]))
-    Traders: [buyer: [9.0, 8.0], mediator: [-1.0, -2.0], seller: [-2.0, -3.0, -4.0]]
-    buyer: [9.0]: all 1 agents trade and pay 8.0
-    mediator: [-1.0, -2.0]: random 1 out of 2 agents trade and pay -4.0
-    seller: [-2.0, -3.0]: random 1 out of 2 agents trade and pay -4.0
 
     >>> market = Market([AgentCategory("buyer", [9.,8.,7.]), AgentCategory("mediator", [-1.,-2.,-3.]), AgentCategory("seller", [-4.,-3.,-2.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,1]))
@@ -119,35 +65,14 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
     mediator: [-1.0, -2.0]: all 2 agents trade and pay -3.0
     seller: [-2.0, -3.0, -4.0]: random 2 out of 3 agents trade and pay -4.0
 
-    >>> market = Market([AgentCategory("buyer", [9.,8.,4.]), AgentCategory("mediator", [-1.,-2.,-3.]), AgentCategory("seller", [-4.,-3.,-2.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,1]))
-    Traders: [buyer: [9.0, 8.0, 4.0], mediator: [-1.0, -2.0, -3.0], seller: [-2.0, -3.0, -4.0]]
-    buyer: [9.0, 8.0]: all 2 agents trade and pay 7.0
-    mediator: [-1.0, -2.0]: all 2 agents trade and pay -3.0
-    seller: [-2.0, -3.0]: all 2 agents trade and pay -4.0
 
     >>> # ONE BUYER, TWO SELLERS
-    >>> market = Market([AgentCategory("buyer", [9.]),  AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,2]))
-    Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
-    No trade
+
     >>> market = Market([AgentCategory("buyer", [9., 8., 7., 6.]),  AgentCategory("seller", [-6., -5., -4.,-3.,-2.,-1.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [1,2]))
     Traders: [buyer: [9.0, 8.0, 7.0, 6.0], seller: [-1.0, -2.0, -3.0, -4.0, -5.0, -6.0]]
     buyer: [9.0]: all 1 agents trade and pay 8.0
     seller: [-1.0, -2.0, -3.0, -4.0]: random 2 out of 4 agents trade and pay -4.0
-
-    >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.,-3.,-2.,-1.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,2]))
-    Traders: [buyer: [9.0, 8.0], seller: [-1.0, -2.0, -3.0, -4.0]]
-    buyer: [9.0]: all 1 agents trade and pay 8.0
-    seller: [-1.0, -2.0, -3.0, -4.0]: random 2 out of 4 agents trade and pay -4.0
-
-    >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-6.,-3.,-2.,-1.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [1,2]))
-    Traders: [buyer: [9.0, 8.0], seller: [-1.0, -2.0, -3.0, -6.0]]
-    buyer: [9.0]: all 1 agents trade and pay 8.0
-    seller: [-1.0, -2.0, -3.0]: random 2 out of 3 agents trade and pay -4.0
 
     >>> market = Market([AgentCategory("seller", [-4.,-3.,-2.,-1.]), AgentCategory("buyer", [9.,8.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [2,1]))
@@ -155,15 +80,9 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
     seller: [-1.0, -2.0, -3.0]: random 2 out of 3 agents trade and pay -4.0
     buyer: [9.0, 8.0]: random 1 out of 2 agents trade and pay 8.0
 
-    >>> # PRICE CROSSES ZERO AT FIRST PHASE
-    >>> logger.setLevel(logging.WARNING)
-    >>> market = Market([AgentCategory("seller", [-3.,-2.,-1.]), AgentCategory("buyer", list(range(20)))])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [2,1]))
-    Traders: [seller: [-1.0, -2.0, -3.0], buyer: [19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]]
-    seller: [-1.0, -2.0, -3.0]: random 2 out of 3 agents trade and pay -9.0
-    buyer: [19]: all 1 agents trade and pay 18
 
     >>> # ONE SELLER, ONE BUYER, ZERO MEDIATORS
+
     >>> market = Market([AgentCategory("seller", [-4.]), AgentCategory("buyer", [9.,8.]), AgentCategory("mediator", [-5, -7])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [1,1,0]))
     Traders: [seller: [-4.0], buyer: [9.0, 8.0], mediator: [-5, -7]]
