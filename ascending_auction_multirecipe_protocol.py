@@ -24,13 +24,16 @@ Since:  2020-03
 from agents import AgentCategory, EmptyCategoryException, MAX_VALUE
 from markets import Market
 from trade import Trade, TradeWithSinglePrice
-from prices import AscendingPriceVector, SimultaneousAscendingPriceVectors, PriceStatus
+from prices import SimultaneousAscendingPriceVectors, PriceStatus
 from typing import *
 
 import logging, sys, math
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 # To enable tracing, set logger.setLevel(logging.INFO)
+
+
+EPSILON = 0.00001
 
 class TradeWithMultipleRecipes(Trade):
     """
@@ -42,29 +45,22 @@ class TradeWithMultipleRecipes(Trade):
         self.num_categories = len(categories)
         self.ps_recipes = ps_recipes
         self.num_recipes = len(ps_recipes)
-        self.map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(self.num_categories, ps_recipes)
+        map_category_index_to_recipe_indices, common_category_indices, map_recipe_index_to_unique_category_indices = \
+            _analyze_recipes(self.num_categories, ps_recipes)
         self.prices = prices
+        self.map_category_index_to_recipe_indices = map_category_index_to_recipe_indices
 
-        ps_supported_by_common_categories = MAX_VALUE
-        ps_supported_by_unique_categories = 0
-        has_unique_categories = False
-        for (category_index, category) in enumerate(self.categories):
-            ps_supported_by_current_category = category.size()  # Currently all recipes are binary
-            recipe_indices = self.map_category_index_to_recipe_indices[category_index]
-            if len(recipe_indices)==self.num_recipes:
-                ps_supported_by_common_categories = min(ps_supported_by_common_categories, ps_supported_by_current_category)
-            elif len(recipe_indices)==1:
-                ps_supported_by_unique_categories += ps_supported_by_current_category
-                has_unique_categories = True
-            elif len(recipe_indices) == 0:
-                pass   # irrelevant category
-            else:
-                raise ValueError("Currently, only unique or common categories are supported; but category {} appears only in recipes {}".format(category_index, recipe_indices))
+        ps_supported_by_common_categories = min([self.categories[i].size() for i in common_category_indices]) \
+            if len(common_category_indices) > 0 \
+            else MAX_VALUE
 
-        if has_unique_categories:
-            self.num_of_deals_cache = min(ps_supported_by_unique_categories, ps_supported_by_common_categories)
-        else:
-            self.num_of_deals_cache = ps_supported_by_common_categories
+        map_recipe_index_to_ps_supported_by_unique_categories = [
+            min([self.categories[i].size() for i in unique_category_indices])
+            for unique_category_indices in map_recipe_index_to_unique_category_indices
+        ]
+        ps_supported_by_unique_categories = sum(map_recipe_index_to_ps_supported_by_unique_categories)
+
+        self.num_of_deals_cache = min(ps_supported_by_unique_categories, ps_supported_by_common_categories)
 
     def num_of_deals(self):
         return self.num_of_deals_cache
@@ -127,6 +123,7 @@ def budget_balanced_ascending_auction(
     Traders: [buyer: [9.0, 8.0], seller: [-4.0]]
     No trade
 
+    >>> logger.setLevel(logging.WARNING)
     >>> market = Market([AgentCategory("buyer", [9.]), AgentCategory("seller", [-4.,-3.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
     Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
@@ -154,20 +151,19 @@ def budget_balanced_ascending_auction(
             raise ValueError("Currently, the multi-recipe protocol supports only recipes of zeros and ones; {} was given".format(ps_recipe))
 
 
-    logger.info("\n#### Budget-Balanced Ascending Auction\n")
+    logger.info("\n#### Multi-Recipe Budget-Balanced Ascending Auction\n")
     logger.info(market)
     logger.info("Procurement-set recipes: {}".format(ps_recipes))
 
-    map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(num_categories, ps_recipes)
-    relevant_category_indices = [i for i in range(num_categories) if len(map_category_index_to_recipe_indices[i])>0]
+    map_category_index_to_recipe_indices, common_category_indices, map_recipe_index_to_unique_category_indices = \
+        _analyze_recipes(num_categories, ps_recipes)
 
     # Calculating the optimal trade with multiple recipes is left for future work.
     # optimal_trade = market.optimal_trade(ps_recipe)[0]
     # logger.info("For comparison, the optimal trade is: %s\n", optimal_trade)
 
     remaining_market = market.clone()
-    price_vectors = [AscendingPriceVector(ps_recipe, -MAX_VALUE) for ps_recipe in ps_recipes]
-    prices = SimultaneousAscendingPriceVectors(price_vectors)
+    prices = SimultaneousAscendingPriceVectors(ps_recipes, -MAX_VALUE)
 
     # Functions for calculating the number of potential PS that can be supported by a category:
     # Currently we assume a recipe of ones, so the number of potential PS is simply the category size:
@@ -176,91 +172,117 @@ def budget_balanced_ascending_auction(
 
     while True:
         # find a category with a largest number of potential PS, and increase its price
-        main_category_index = max(relevant_category_indices, key=fractional_potential_ps)
-        main_category = remaining_market.categories[main_category_index]
-        main_category_recipe_indices = map_category_index_to_recipe_indices[main_category_index]
-        logger.info("{} before: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
 
-        # TODO: Category that becomes empty rules out only recipes that contain it - other recipes may remain active!
-        if main_category.size() == 0:
-            if len(main_category_recipe_indices)==num_recipes:
-                logger.info("\nThe common %s category became empty - no trade!", main_category.name)
-                logger.info("  Final price-per-unit vector: %s", prices)
-                break
-            else:
-                logger.info("\nThe %s category became empty - no trade in recipes %s", main_category.name, main_category_recipe_indices)
-                remaining_recipes = [ps_recipe for (recipe_index, ps_recipe) in enumerate(ps_recipes) if recipe_index not in main_category_recipe_indices]
-                logger.info("Recursing with the remaining recipes: %s", remaining_recipes)
-                return budget_balanced_ascending_auction(market, remaining_recipes)
+        largest_common_category_index = max(common_category_indices, key=fractional_potential_ps) \
+            if len(common_category_indices)>0 \
+            else None
+        largest_common_category_size  = fractional_potential_ps(largest_common_category_index) \
+            if len(common_category_indices) > 0 \
+            else 0
 
-            logger.info("\nThe category became empty! TODO")
-            continue
-        #     logger.info("  Final price-per-unit vector: %s", prices)
-        #     break
+        map_recipe_index_to_largest_unique_category_index = [
+            max(unique_category_indices, key=fractional_potential_ps)
+            for unique_category_indices in map_recipe_index_to_unique_category_indices]
+        if len(map_recipe_index_to_largest_unique_category_index)==0:
+            raise ValueError("No unique categories")
+        unique_categories_size = sum([
+            fractional_potential_ps(largest_unique_category_index)
+            for largest_unique_category_index in map_recipe_index_to_largest_unique_category_index
+        ])
 
-        increases = _calculate_price_increases(remaining_market, ps_recipes, map_category_index_to_recipe_indices, main_category_index)
+        if unique_categories_size == 0:
+            logger.info("\nThe unique categories %s became empty - no trade!", map_recipe_index_to_largest_unique_category_index)
+            logger.info("  Final price-per-unit vector: %s", prices)
+            logger.info(remaining_market)
+            return TradeWithMultipleRecipes(remaining_market.categories, ps_recipes, prices.map_category_index_to_price())
+
+        if largest_common_category_size >= unique_categories_size:
+            logger.info("Raising price of the largest common category (%d) in all recipes", largest_common_category_index)
+            main_category_index = largest_common_category_index
+            main_category = remaining_market.categories[main_category_index]
+            logger.info("%s before: %d agents remain", main_category.name, main_category.size())
+            increases = [(main_category_index, main_category.lowest_agent_value(), main_category.name)] * num_recipes
+
+        else:  # largest_common_category_size < unique_categories_size
+            logger.info("Raising price of the largest unique categories in each recipe: %s", map_recipe_index_to_largest_unique_category_index)
+            increases = []
+            for recipe_index, main_category_index in enumerate(map_recipe_index_to_largest_unique_category_index):
+                main_category = remaining_market.categories[main_category_index]
+                logger.info("%s before: %d agents remain", main_category.name, main_category.size())
+                if main_category.size() == 0:
+                    logger.info("\nThe %s category became empty - no trade in recipe %d", main_category.name, recipe_index)
+                    del ps_recipes[recipe_index]
+                    if len(ps_recipes)>0:
+                        return budget_balanced_ascending_auction(market, ps_recipes)
+                    else:
+                        logger.info("\nNo recipes left - no trade!")
+                        logger.info("  Final price-per-unit vector: %s", prices)
+                        logger.info(remaining_market)
+                        return TradeWithMultipleRecipes(remaining_market.categories, ps_recipes, map_category_index_to_price)
+                increases.append( (main_category_index, main_category.lowest_agent_value(), main_category.name) )
+            if len(increases)==0:
+                raise ValueError("No increases!")
+
+
+        logger.info("Planned increases: %s", increases)
         prices.increase_prices(increases)
         map_category_index_to_price = prices.map_category_index_to_price()
-
         if prices.status == PriceStatus.STOPPED_AT_ZERO_SUM:
             logger.info("\nPrice crossed zero.")
             logger.info("  Final price-per-unit vector: %s", map_category_index_to_price)
-            break
+            logger.info(remaining_market)
+            return TradeWithMultipleRecipes(remaining_market.categories, ps_recipes, map_category_index_to_price)
 
-        for category_index in relevant_category_indices:
+        for category_index in range(num_categories):
             category = remaining_market.categories[category_index]
-            if category.size()>0 and category.lowest_agent_value() <= map_category_index_to_price[category_index]:
-                category.remove_lowest_agent()
-                logger.info("{} after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(category_index)))
+            if map_category_index_to_price[category_index] is not None \
+                and category.size()>0 \
+                and category.lowest_agent_value() <= map_category_index_to_price[category_index]:
+                    category.remove_lowest_agent()
+                    logger.info("{} after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(category_index)))
 
-    logger.info(remaining_market)
-    return TradeWithMultipleRecipes(remaining_market.categories, ps_recipes, map_category_index_to_price)
 
-
-def _map_category_index_to_containing_recipe_indices(num_categories: int, ps_recipes:List[List]):
+def _analyze_recipes(num_categories: int, ps_recipes:List[List]):
     """
-    >>> _map_category_index_to_containing_recipe_indices(5, [ [1,1,0,0,0], [1,0,1,1,0] ])
+    >>> map_category_to_recipe, common_categories, map_recipe_to_unique_categories = _analyze_recipes(3, [ [1,1,0] ])
+    >>> map_category_to_recipe
+    [[0], [0], []]
+    >>> common_categories
+    set()
+    >>> map_recipe_to_unique_categories
+    [{0, 1}]
+    >>> map_category_to_recipe, common_categories, map_recipe_to_unique_categories = _analyze_recipes(3, [ [1,1,0], [1,0,1] ])
+    >>> map_category_to_recipe
+    [[0, 1], [0], [1]]
+    >>> common_categories
+    {0}
+    >>> map_recipe_to_unique_categories
+    [{1}, {2}]
+    >>> map_category_to_recipe, common_categories, map_recipe_to_unique_categories = _analyze_recipes(5, [ [1,1,0,0,0], [1,0,1,1,0] ])
+    >>> map_category_to_recipe
     [[0, 1], [0], [1], [1], []]
+    >>> common_categories
+    {0}
+    >>> map_recipe_to_unique_categories
+    [{1}, {2, 3}]
     """
     num_recipes = len(ps_recipes)
-    return [
-        [recipe_index for recipe_index in range(num_recipes) if ps_recipes[recipe_index][category_index] > 0]
-        for category_index in range(num_categories)
-    ]
+    map_category_index_to_recipe_indices = []
+    common_category_indices = set()
+    map_recipe_index_to_unique_category_indices = [set() for _ in ps_recipes]
+    for category_index in range(num_categories):
+        containing_recipe_indices = [recipe_index for recipe_index in range(num_recipes) if ps_recipes[recipe_index][category_index] > 0]
+        map_category_index_to_recipe_indices.append(containing_recipe_indices)
+        if len(containing_recipe_indices) == 0:
+            pass   # irrelevant category
+        elif len(containing_recipe_indices)==1:
+            map_recipe_index_to_unique_category_indices[containing_recipe_indices[0]].add(category_index)
+        elif len(containing_recipe_indices) == num_recipes:
+            common_category_indices.add(category_index)
+        else:
+            raise ValueError("Category #{} is not common nor unique; it appears in recipes {}".format(category_index, containing_recipe_indices))
+    return map_category_index_to_recipe_indices, common_category_indices, map_recipe_index_to_unique_category_indices
 
-
-def _calculate_price_increases(market:Market, ps_recipes:List[List], map_category_index_to_recipe_indices:List[List], main_category_index:int):
-    """
-    Calculate the pairs (category_index, new_price) for simultaneous price-increase for different PS recipes.
-
-    >>> market = Market([AgentCategory("buyer", [9,8,7,6]),  AgentCategory("seller", [-1,-2,-3,-4]),  AgentCategory("sel", [-5,-6,-7,-8]),  AgentCategory("ler", [-9,-10,-11,-12])])
-    >>> ps_recipes = [[1,1,0,0],[1,0,1,1]]
-    >>> map_category_index_to_recipe_indices = _map_category_index_to_containing_recipe_indices(market.num_categories, ps_recipes)
-    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=0)
-    [(0, 6, 'buyer'), (0, 6, 'buyer')]
-    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=1)
-    [(1, -4, 'seller'), (2, -8, 'sel')]
-    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=2)
-    [(1, -4, 'seller'), (2, -8, 'sel')]
-    >>> _calculate_price_increases (market, ps_recipes, map_category_index_to_recipe_indices, main_category_index=3)
-    [(1, -4, 'seller'), (3, -12, 'ler')]
-    """
-    increases = []
-    main_category = market.categories[main_category_index]
-    for (recipe_index, recipe) in enumerate(ps_recipes):
-        if recipe[main_category_index] > 0:  # If a recipe contains the maximum-size category - increase the category's price in this recipe's vector.
-            increases.append((main_category_index, main_category.lowest_agent_value(), main_category.name))
-        else:  # Otherwise, increase some other category, such that the sum of all recipes main_category the same
-            possible_other_category_indices = [
-                category_index for category_index in range(market.num_categories)
-                if map_category_index_to_recipe_indices[category_index] == [recipe_index]
-            ]
-            if len(possible_other_category_indices)==0:
-                raise ValueError("Cannot find a category that is unique to this recipe!")
-            other_category_index = possible_other_category_indices[0]
-            other_category = market.categories[other_category_index]
-            increases.append((other_category_index, other_category.lowest_agent_value(), other_category.name))
-    return increases
 
 
 

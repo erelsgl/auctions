@@ -59,6 +59,11 @@ class TestAscendingAuction(unittest.TestCase):
         check_1_1(buyers=[-4,-3], sellers=[-9,-8],
             expected_num_of_deals=0, expected_prices=[-3,-8])
 
+        # LARGER EXAMPLE
+        check_1_1(buyers=[19,17,15,13,11,9], sellers=[-12,-10,-8,-6,-4,-2],
+            expected_num_of_deals=4, expected_prices=[11,-11])
+
+
 
     def test_market_1_1_1(self):
         """
@@ -87,6 +92,19 @@ class TestAscendingAuction(unittest.TestCase):
             expected_num_of_deals=2, expected_prices=[7,-3,-4])
         check_1_1_1(buyers=[9,8,4], mediators=[-1,-2,-3], sellers=[-4,-3,-2],
             expected_num_of_deals=2, expected_prices=[7,-3,-4])
+
+        # RUNNING EXAMPLE FROM THE PAPER
+        check_1_1_1(buyers=[17, 14, 13, 9, 6], mediators=[-1, -3, -4, -7, -10], sellers=[-1, -4, -5, -8, -11],
+            expected_num_of_deals=2, expected_prices=[13,-5,-8])
+        # SIMILAR EXAMPLE, WHERE PRICE STOPS BETWEEN SELLERS:
+        check_1_1_1(buyers=[17, 14, 13, 9, 6], mediators=[-1, -4, -5, -8, -11], sellers=[-1, -3, -6, -7, -10],
+            expected_num_of_deals=2, expected_prices=[13,-6,-7])
+        # SIMILAR EXAMPLE, WHERE PRICE STOPS BETWEEN MEDIATORS:
+        check_1_1_1(buyers=[17, 14, 13, 9, 6], mediators=[-1, -3, -6, -7, -10], sellers=[-1, -4, -6.5, -8, -11],
+            expected_num_of_deals=2, expected_prices=[13, -6, -7])
+        # SIMILAR EXAMPLE, WHERE PRICE STOPS BETWEEN BUYERS:
+        check_1_1_1(buyers=[17, 14, 13, 9, 6], mediators=[-1, -3, -6, -7, -10], sellers=[-1, -4, -7.5, -8, -11],
+            expected_num_of_deals=2, expected_prices=[13.5, -6, -7.5])
 
 
     def test_market_1_2(self):

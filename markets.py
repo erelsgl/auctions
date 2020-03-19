@@ -95,6 +95,14 @@ class Market:
             category_i.remove_highest_agents(recipe_i)
 
 
+    # def remove_agents_below_prices(self, map_category_index_to_price:list):
+    #     for category_index, category in enumerate(self.categories):
+    #         if category.size()>0 and category.lowest_agent_value() <= map_category_index_to_price[category_index]:
+    #             category.remove_lowest_agent()
+    #             logger.info("{} after: {} agents remain,  {} PS supported".format(category.name, category.size(), integral_potential_ps(category_index)))
+
+
+
     def empty_agent_categories(self)->list:
         """
         Construct k empty categories, one for each category in the present market.
