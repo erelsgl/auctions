@@ -179,6 +179,7 @@ def budget_balanced_ascending_auction(
         largest_common_category_size  = fractional_potential_ps(largest_common_category_index) \
             if len(common_category_indices) > 0 \
             else 0
+        logger.info("Largest common category is %d and its size is %d", largest_common_category_index, largest_common_category_size)
 
         map_recipe_index_to_largest_unique_category_index = [
             max(unique_category_indices, key=fractional_potential_ps)
@@ -189,6 +190,7 @@ def budget_balanced_ascending_auction(
             fractional_potential_ps(largest_unique_category_index)
             for largest_unique_category_index in map_recipe_index_to_largest_unique_category_index
         ])
+        logger.info("Largest unique categories are %s and their total size is %d", map_recipe_index_to_largest_unique_category_index, unique_categories_size)
 
         if unique_categories_size == 0:
             logger.info("\nThe unique categories %s became empty - no trade!", map_recipe_index_to_largest_unique_category_index)
