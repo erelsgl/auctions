@@ -11,7 +11,6 @@ Since:  2019-08
 from agents import AgentCategory, EmptyCategoryException, MAX_VALUE
 from markets import Market
 from trade import TradeWithSinglePrice
-from dicttools import stringify
 import prices
 from prices import AscendingPriceVector, PriceStatus
 
