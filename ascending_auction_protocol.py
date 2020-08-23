@@ -115,7 +115,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
         # find a category with a largest number of potential PS, and increase its price
         main_category_index = max(relevant_category_indices, key=fractional_potential_ps)
         main_category = remaining_market.categories[main_category_index]
-        logger.info("{} before: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
+        logger.info("Chosen category: {} with {} agents and ratio {}".format(main_category.name, main_category.size(), fractional_potential_ps(main_category_index)))
 
         if main_category.size() == 0:
             logger.info("\nThe %s category became empty - no trade!", main_category.name)
@@ -129,7 +129,7 @@ def budget_balanced_ascending_auction(market:Market, ps_recipe: list, max_iterat
             break
 
         main_category.remove_lowest_agent()
-        logger.info("{}  after: {} agents remain,  {} PS supported".format(main_category.name, main_category.size(), integral_potential_ps(main_category_index)))
+        logger.info("  {} price increases to {}: {} agents and ratio {}".format(main_category.name, prices[main_category_index], main_category.size(), fractional_potential_ps(main_category_index)))
 
     logger.info(remaining_market)
     return TradeWithSinglePrice(remaining_market.categories, ps_recipe, prices.prices)
