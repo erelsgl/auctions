@@ -10,8 +10,8 @@ Since:  2019-08
 
 from markets import Market
 from agents import AgentCategory
-import ascending_auction_multibuyer_protocol
-from ascending_auction_multibuyer_protocol import budget_balanced_ascending_auction
+from old import ascending_auction_multibuyer_protocol
+from old.ascending_auction_multibuyer_protocol import budget_balanced_ascending_auction
 import prices
 
 import logging

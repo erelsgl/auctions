@@ -111,27 +111,28 @@ def budget_balanced_ascending_auction(
                        Each integer i represents the number of agents of category i
                        that should be in each procurement-set.
     :return: Trade object, representing the trade and prices.
-
     >>> # ONE BUYER, ONE SELLER
+    >>> recipe_11 = [[1,1]]
+    >>>
     >>> market = Market([AgentCategory("buyer", [9.]),  AgentCategory("seller", [-4.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0], seller: [-4.0]]
     No trade
 
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0, 8.0], seller: [-4.0]]
     No trade
 
     >>> logger.setLevel(logging.WARNING)
     >>> market = Market([AgentCategory("buyer", [9.]), AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
     seller: [-3.0]: all 1 agents trade and pay -4.0
     buyer: [9.0]: all 1 agents trade and pay 4.0
 
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.,-3.])])
-    >>> print(market); print(budget_balanced_ascending_auction(market, [[1,1]]))
+    >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0, 8.0], seller: [-3.0, -4.0]]
     seller: [-3.0, -4.0]: random 1 out of 2 agents trade and pay -8.0
     buyer: [9.0]: all 1 agents trade and pay 8.0
