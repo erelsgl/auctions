@@ -166,18 +166,7 @@ class SimultaneousAscendingPriceVectors:
         >>> pv.map_category_index_to_price()[1]
         10.0
         """
-        return self.vector
-        # result = [None]*self.num_categories
-        # for vector in self.vectors:
-        #     for category_index in range(self.num_categories):
-        #         if vector.ps_recipe[category_index] > 0:
-        #             if result[category_index] is None:
-        #                 result[category_index] = vector.prices[category_index]
-        #             elif result[category_index] != vector.prices[category_index]:
-        #                 raise ValueError("Inconsistent prices for category {}: {} vs {}".format(category_index, result[category_index], vector.prices[category_index]))
-        #             else:
-        #                 pass
-        # return result
+        return self.vector.prices
 
     # def __getitem__(self, vector_index:int):
     #     return self.vectors[vector_index]

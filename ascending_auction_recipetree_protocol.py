@@ -135,7 +135,8 @@ def budget_balanced_ascending_auction(
         increases = []
         for category_index in indices_of_prices_to_increase:
             category = remaining_market.categories[category_index]
-            increases.append((category_index, category.lowest_agent_value(), category.name))
+            target_price = category.lowest_agent_value() if category.size()>0 else MAX_VALUE
+            increases.append((category_index, target_price, category.name))
 
         logger.info("Planned price-increases: %s", increases)
         prices.increase_prices(increases)

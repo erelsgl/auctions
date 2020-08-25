@@ -153,7 +153,7 @@ class TestAscendingAuction(unittest.TestCase):
             self._check_market(market, ps_recipe, expected_num_of_deals, expected_prices)
 
         check_1_0_1(buyers=[9,8], mediators=[-5,-7], sellers=[-4,-3],
-            expected_num_of_deals=1, expected_prices=[8,-MAX_VALUE,-8])
+            expected_num_of_deals=1, expected_prices=[8,None,-8])
 
 if __name__ == '__main__':
     unittest.main()
