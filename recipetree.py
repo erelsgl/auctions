@@ -42,32 +42,43 @@ class RecipeTree (NodeMixin):
     [60, 40, 20, -30]
     >>> tree.combined_values_detailed()
     [60, 40, 20, -30]
-    >>> tree.maximum_GFT()
+    >>> tree.optimal_trade_GFT()
     120
     >>> tree.largest_categories()
     (4, ['buyer'])
     >>> tree.paths_to_leaf()
     [['buyer']]
+    >>> tree.num_of_deals()
+    4
+    >>> print(tree.num_of_deals_explained(prices=[1,2,3,4])[1])
+    buyer: 4 potential deals, price=1
+    <BLANKLINE>
 
     >>> tree = RecipeTree(categories, [0, [1, None]])   # buyer -> seller
     >>> tree.combined_values()
     [50, 10, -30]
     >>> tree.combined_values_detailed()
     [(60, -10), (40, -30), (20, -50)]
-    >>> tree.maximum_GFT()
+    >>> tree.optimal_trade_GFT()
     60
     >>> tree.largest_categories()
     (4, ['buyer'])
     >>> tree.paths_to_leaf()
     [['buyer', 'seller']]
-
+    >>> tree.num_of_deals()
+    3
+    >>> print(tree.num_of_deals_explained(prices=[1,2,3,4])[1])
+    seller: 3 potential deals, price=2
+    buyer: 3 out of 4 traders selected, price=1
+    seller: all 3 traders selected
+    <BLANKLINE>
 
     >>> tree = RecipeTree(categories, [0, [2, None, 3, None]])   # buyer -> producerA, buyer -> producerB
     >>> tree.combined_values()
     [59, 38, 17, -34]
     >>> tree.combined_values_detailed()
     [(60, -1), (40, -2), (20, -3), (-30, -4)]
-    >>> tree.maximum_GFT()
+    >>> tree.optimal_trade_GFT()
     114
     >>> tree.largest_categories()
     (7, ['producerA', 'producerB'])
@@ -75,6 +86,14 @@ class RecipeTree (NodeMixin):
     [['buyer', 'producerA'], ['buyer', 'producerB']]
     >>> tree.recipes()
     [[1, 0, 1, 0], [1, 0, 0, 1]]
+    >>> tree.num_of_deals()
+    4
+    >>> print(tree.num_of_deals_explained(prices=[1,2,3,4])[1])
+    producerA: 3 potential deals, price=3
+    producerB: 4 potential deals, price=4
+    buyer: all 4 traders selected, price=1
+    producerA + producerB: 4 out of 7 traders selected
+    <BLANKLINE>
 
 
     >>> tree = RecipeTree(categories, [0, [1, None, 2, [3, None]]])   # buyer -> seller, buyer -> producerA -> producerB
@@ -82,16 +101,28 @@ class RecipeTree (NodeMixin):
     [57, 33, 10, -41]
     >>> tree.combined_values_detailed()
     [(60, -3), (40, -7), (20, -10), (-30, -11)]
-    >>> tree.maximum_GFT()
+    >>> tree.optimal_trade_GFT()
     100
     >>> tree.largest_categories()
     (7, ['seller', 'producerB'])
+    >>> tree.largest_categories(indices=True)
+    (7, [1, 3])
     >>> tree.paths_to_leaf()
     [['buyer', 'seller'], ['buyer', 'producerA', 'producerB']]
     >>> tree.paths_to_leaf(indices=True)
     [[0, 1], [0, 2, 3]]
     >>> tree.recipes()
     [[1, 1, 0, 0], [1, 0, 1, 1]]
+    >>> tree.num_of_deals()
+    4
+    >>> print(tree.num_of_deals_explained(prices=[1,2,3,4])[1])
+    seller: 3 potential deals, price=2
+    producerB: 4 potential deals, price=4
+    producerA: all 3 traders selected, price=3
+    producerB: 3 out of 4 traders selected
+    buyer: all 4 traders selected, price=1
+    seller + producerA: 4 out of 6 traders selected
+    <BLANKLINE>
     """
 
     def __init__(self, categories:List[AgentCategory], category_indices:List[Any]):
@@ -207,34 +238,81 @@ class RecipeTree (NodeMixin):
         optimal_trade_values_GFT = sum(flatten(optimal_trade_values))
         return (optimal_trade_values, optimal_trade_values_GFT)
 
-    def maximum_GFT(self) -> int:
+    def optimal_trade_GFT(self) -> int:
         """
         Calculate the maximum possible GFT for the given category tree.
         """
         return sum([v for v in self.combined_values() if v > 0])
 
 
-    def largest_categories(self) -> (int,list):
+    def largest_categories(self, indices=False) -> (int,list):
         """
         Return a list of category names,
         such that each path from root to leaf contains one such category,
         and these are the categories with the largest number of traders.
 
+        :param indices: if True, each element in the path is a node index. Otherwise, it is the node name.
         :return (largest category size, list of largest categories)
         """
         self_category_size = self.category.size()
         children_category_size = 0
         children_largest_categories = []
         for child in self.children:
-            (child_category_size, child_largest_categories) = child.largest_categories()
+            (child_category_size, child_largest_categories) = child.largest_categories(indices=indices)
             children_category_size += child_category_size
             children_largest_categories += child_largest_categories
         if self_category_size >=  children_category_size:
-            return (self_category_size, [self.name])
+            return (self_category_size, [self.category_index if indices else self.name])
         else:
             return (children_category_size, children_largest_categories)
 
 
+    def num_of_deals(self)->int:
+        """
+        Calculates the maximum number of deals that can be done using the recipes in this recipe-tree.
+        :return:
+        """
+        self_num_of_deals = self.category.size()
+        if len(self.children) == 0:
+            num_of_deals = self_num_of_deals
+        else:
+            sum_children_num_of_deals = sum([child.num_of_deals() for child in self.children])
+            num_of_deals = min(sum_children_num_of_deals,self_num_of_deals)
+        return num_of_deals
+
+
+    def num_of_deals_explained(self, prices:List[float])->str:
+        """
+        Return a detailed explanation of the number of deals done,
+        including what categories require randomization.
+        :return: A representation string.
+        """
+        self_num_of_deals = self.category.size()
+        self_price = prices[self.category_index]
+        if len(self.children) == 0:
+            num_of_deals = self_num_of_deals
+            explanation = "{}: {} potential deals, price={}\n".format(self.name, self_num_of_deals, self_price)
+        else:
+            children_num_of_deals_explained = [child.num_of_deals_explained(prices) for child in self.children]
+            # logger.debug(children_num_of_deals_explained)
+            children_num_of_deals = [t[0] for t in children_num_of_deals_explained]
+            sum_children_num_of_deals = sum(children_num_of_deals)
+            # logger.debug(children_num_of_deals)
+            children_explanations = [t[1] for t in children_num_of_deals_explained]
+            # logger.debug(children_explanations)
+            children_names = [child.name for child in self.children]
+            sum_children_names = " + ".join(children_names)
+            num_of_deals = min(sum_children_num_of_deals,self_num_of_deals)
+            explanation = "".join(children_explanations)
+            if num_of_deals==self_num_of_deals:
+                explanation += "{}: all {} traders selected, price={}\n".format(self.name, self_num_of_deals, self_price)
+            else:
+                explanation += "{}: {} out of {} traders selected, price={}\n".format(self.name, num_of_deals, self_num_of_deals, self_price)
+            if num_of_deals == sum_children_num_of_deals:
+                explanation += "{}: all {} traders selected\n".format(sum_children_names, sum_children_num_of_deals)
+            else:
+                explanation += "{}: {} out of {} traders selected\n".format(sum_children_names, num_of_deals, sum_children_num_of_deals)
+        return (num_of_deals,explanation)
 
 
 

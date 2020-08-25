@@ -29,9 +29,6 @@ class PriceStatus(Enum):
     STOPPED_AT_ZERO_SUM = 2
 
 
-class PriceCrossesZeroException(Exception):
-    pass
-
 class AscendingPriceVector:
     """
     Represents a vector of prices - one price for each category of agents.
@@ -127,9 +124,7 @@ class AscendingPriceVector:
 
 class SimultaneousAscendingPriceVectors:
     """
-    Represents a collection of tied price-vectors, corresponding to different PS recipes in the same market.
-    All price-vectors must have the same number of categories.
-    During price-increases, all price-vectors retain the same sum.
+    Represents a price-vector that can increase several prices simultaneously.
 
     >>> pv = SimultaneousAscendingPriceVectors([[1, 1, 0, 0], [1, 0, 1, 1]], -10000)
     >>> str(pv)
@@ -143,18 +138,21 @@ class SimultaneousAscendingPriceVectors:
         for ps_recipe in ps_recipes:
             if len(ps_recipe) != num_categories:
                 raise ValueError("Different category counts: {} vs {}".format(num_categories, len(ps_recipe)))
+        self.num_categories = num_categories
 
         initial_prices = calculate_initial_prices(ps_recipes, initial_price_sum)
-        vectors = []
-        for ps_recipe in ps_recipes:
-            vectors.append(AscendingPriceVector(ps_recipe, initial_prices))
 
-        self.vectors = vectors
-        self.num_categories = num_categories
+        self.ps_recipes = ps_recipes
+        self.vector = AscendingPriceVector(ps_recipes[0], initial_prices)
+        # vectors = []
+        # for ps_recipe in ps_recipes:
+        #     vectors.append(AscendingPriceVector(ps_recipe, initial_prices))
+        # self.vectors = vectors
+        # self.vector  = vectors[0]
         self.status = None  # status of the latest price-increase operation
 
     def price_sum(self):
-        return self.vectors[0].price_sum()
+        return self.vector.price_sum()
 
     def map_category_index_to_price(self):
         """
@@ -168,58 +166,85 @@ class SimultaneousAscendingPriceVectors:
         >>> pv.map_category_index_to_price()[1]
         10.0
         """
-        result = [None]*self.num_categories
-        for vector in self.vectors:
-            for category_index in range(self.num_categories):
-                if vector.ps_recipe[category_index] > 0:
-                    if result[category_index] is None:
-                        result[category_index] = vector.prices[category_index]
-                    elif result[category_index] != vector.prices[category_index]:
-                        raise ValueError("Inconsistent prices for category {}: {} vs {}".format(category_index, result[category_index], vector.prices[category_index]))
-                    else:
-                        pass
-        return result
+        return self.vector
+        # result = [None]*self.num_categories
+        # for vector in self.vectors:
+        #     for category_index in range(self.num_categories):
+        #         if vector.ps_recipe[category_index] > 0:
+        #             if result[category_index] is None:
+        #                 result[category_index] = vector.prices[category_index]
+        #             elif result[category_index] != vector.prices[category_index]:
+        #                 raise ValueError("Inconsistent prices for category {}: {} vs {}".format(category_index, result[category_index], vector.prices[category_index]))
+        #             else:
+        #                 pass
+        # return result
 
-    def __getitem__(self, vector_index:int):
-        return self.vectors[vector_index]
+    # def __getitem__(self, vector_index:int):
+    #     return self.vectors[vector_index]
 
-    def increase_prices(self, increases:List[Tuple[int,float,str]]):
+    def increase_prices(self, increases:List[Tuple[int,float,str]], sum_upper_bound:float=0):
         """
         Simultaneously increase the prices of all vectors, keeping their sum equal.
         :param increases: a list of tuples; each tuple contains arguments to the increase_prices method of AscendingPriceVector:
-            (category_index, new_price, description)
+            (category_index, target_price, description)
+
+        There must be exactly one increase per recipe.
+        This guarantees that the sum in all recipes remains equal.
 
         >>> pv = SimultaneousAscendingPriceVectors([[1, 1, 0, 0], [1, 0, 1, 1]], -10000)
-        >>> pv.increase_prices ([(0,10,"buyer"), (0,10,"buyer")])
         >>> str(pv)
-        "['[10.0, -5000.0, -2500.0, -2500.0]', '[10.0, -5000.0, -2500.0, -2500.0]'] PriceStatus.STOPPED_AT_AGENT_VALUE"
+        '[-5000.0, -5000.0, -2500.0, -2500.0] None'
         >>> pv.increase_prices ([(1,-80, "seller"), (2,-80,"halfseller-A")])
         >>> str(pv)
-        "['[10.0, -2580.0, -80.0, -2500.0]', '[10.0, -2580.0, -80.0, -2500.0]'] PriceStatus.STOPPED_AT_AGENT_VALUE"
+        '[-5000.0, -2580.0, -80.0, -2500.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
         >>> pv.increase_prices ([(1,-80, "seller"), (3,-80,"halfseller-B")])
         >>> str(pv)
-        "['[10.0, -160.0, -80.0, -80.0]', '[10.0, -160.0, -80.0, -80.0]'] PriceStatus.STOPPED_AT_AGENT_VALUE"
+        '[-5000.0, -160.0, -80.0, -80.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
+        >>> pv.increase_prices ([(0,100, "buyer")])
+        >>> str(pv)
+        '[100.0, -160.0, -80.0, -80.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
+        >>> pv.increase_prices ([(1,-80, "seller"), (3,-10,"halfseller-B")])
+        >>> str(pv)
+        '[100.0, -100.0, -80.0, -20.0] PriceStatus.STOPPED_AT_ZERO_SUM'
         """
-        if len(increases) != len(self.vectors):
-            raise ValueError("There should be an increase-triplet per vector. increases={}, vectors={}".format(increases, self.vectors))
         logger.info("  Prices before increase: %s", self.map_category_index_to_price())
         logger.info("  Planned increase: %s", increases)
-        new_sums = [0]*len(self.vectors)
-        for vector_index, vector in enumerate(self.vectors):
-            (category_index, new_price, _) = increases[vector_index]
-            new_sums[vector_index] = vector.price_sum_after_increase(category_index, new_price)
-        min_new_sum = min(0, min(new_sums))
-        logger.info("  Price-sums after increase: %s.  Min sum: %f", new_sums, min_new_sum)
 
-        for vector_index, vector in enumerate(self.vectors):
-            (category_index, new_price, description) = increases[vector_index]
-            vector.increase_price_up_to_balance(category_index, new_price, description, sum_upper_bound=min_new_sum)
+        # Verify that there is exactly one increase per recipe
+        increases_per_recipe = [0]*len(self.ps_recipes)
+        for (recipe_index,recipe) in enumerate(self.ps_recipes):
+            for (category_index, new_price, description) in increases:
+                if recipe[category_index]==1:
+                    increases_per_recipe[recipe_index] += 1
+        logger.info("  Increases per recipe: %s", increases_per_recipe)
+        if any([ipr!=1 for ipr in increases_per_recipe]):
+            raise ValueError("There must be exactly one increase per recipe!")
 
-        self.status = PriceStatus.STOPPED_AT_ZERO_SUM if min_new_sum==0 else PriceStatus.STOPPED_AT_AGENT_VALUE
+        increase_to_upper_bound = sum_upper_bound - self.price_sum()
+        increases_to_new_prices = [new_price - self.vector[category_index]
+                                   for (category_index,new_price,_) in increases]
+        min_increase_to_new_price = min(increases_to_new_prices)
+        min_increase = min(min_increase_to_new_price, increase_to_upper_bound)
+        if min_increase == increase_to_upper_bound:
+            self.status = PriceStatus.STOPPED_AT_ZERO_SUM
+            for (category_index, new_price, description) in increases:
+                fixed_new_price = self.vector[category_index] + min_increase
+                logger.info("{}: while increasing price towards {}, stopped at {} where the price-sum crossed {}".format(description, new_price, fixed_new_price, sum_upper_bound))
+                self.vector[category_index] = fixed_new_price
+
+        else: # min_increase == min_increase_to_new_price:
+            self.status = PriceStatus.STOPPED_AT_AGENT_VALUE
+            for (category_index, new_price, description) in increases:
+                fixed_new_price = self.vector[category_index] + min_increase
+                if fixed_new_price == new_price:
+                    logger.info("{}: price increases to {}".format(description, new_price))
+                else:
+                    logger.info("{}: while increasing price towards {}, stopped at {} where an agent from another category left".format(description, new_price, fixed_new_price, sum_upper_bound))
+                self.vector[category_index] = fixed_new_price
 
 
     def __str__(self):
-        return str([str(v) for v in self.vectors]) + " " + str(self.status)
+        return str(self.vector) + " " + str(self.status)
 
 
 

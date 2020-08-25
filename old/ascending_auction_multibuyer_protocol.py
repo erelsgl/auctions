@@ -21,8 +21,7 @@ Since:  2019-08
 from agents import AgentCategory, EmptyCategoryException, MAX_VALUE
 from markets import Market
 from trade import Trade
-import prices
-from prices import PriceCrossesZeroException, AscendingPriceVector
+from prices import AscendingPriceVector
 
 import logging, sys
 logger = logging.getLogger(__name__)
@@ -193,10 +192,6 @@ def budget_balanced_ascending_auction(
                 category.remove_lowest_agent()
 
             target_unit_count -= 1
-
-    except PriceCrossesZeroException:
-        logger.info("\nPrice crossed zero.")
-        logger.info("  Final price-per-unit vector: %s", prices)
 
     except EmptyCategoryException:
         logger.info("\nOne of the categories became empty. No trade!")
