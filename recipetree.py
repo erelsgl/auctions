@@ -100,7 +100,7 @@ class RecipeTree (NodeMixin):
     >>> tree.combined_values()
     [57, 33, 10, -41]
     >>> tree.combined_values_detailed()
-    [(60, -3), (40, -7), (20, -10), (-30, -11)]
+    [(60, -1, -2), (40, -3, -4), (20, -10), (-30, -5, -6)]
     >>> tree.optimal_trade_GFT()
     100
     >>> tree.largest_categories()
@@ -224,8 +224,9 @@ class RecipeTree (NodeMixin):
         if len(self.children) == 0:
             values = self_values
         else:
-            children_values = sum([child.combined_values() for child in self.children], [])
-            children_values.sort(reverse=True, key=lambda x: sum(x) if isinstance(x,list) else x)
+            children_values = sum([child.combined_values_detailed() for child in self.children], [])
+            logger.debug("children_values: %s",children_values)
+            children_values.sort(reverse=True, key=lambda x: sum(x) if (isinstance(x,list) or isinstance(x,tuple)) else x)
             values = [tuple(flatten(t)) for t in zip(self_values, children_values)]
         return values
 
