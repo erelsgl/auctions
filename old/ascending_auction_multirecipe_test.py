@@ -9,8 +9,8 @@ Since:  2019-08
 
 from markets import Market
 from agents import AgentCategory, MAX_VALUE
-import ascending_auction_multirecipe_protocol, ascending_auction_test, prices
-from ascending_auction_multirecipe_protocol import budget_balanced_ascending_auction
+import ascending_auction_test, prices
+from old import ascending_auction_multirecipe_protocol
 
 import logging
 ascending_auction_multirecipe_protocol.logger.setLevel(logging.WARNING)

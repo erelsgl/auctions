@@ -44,8 +44,8 @@ class RecipeTree (NodeMixin):
     [60, 40, 20, -30]
     >>> tree.optimal_trade_GFT()
     120
-    >>> tree.largest_categories()
-    (4, ['buyer'])
+    >>> tree.largest_categories()[-1]
+    ['buyer']
     >>> tree.paths_to_leaf()
     [['buyer']]
     >>> tree.num_of_deals()
@@ -61,8 +61,8 @@ class RecipeTree (NodeMixin):
     [(60, -10), (40, -30), (20, -50)]
     >>> tree.optimal_trade_GFT()
     60
-    >>> tree.largest_categories()
-    (4, ['buyer'])
+    >>> tree.largest_categories()[-1]
+    ['buyer']
     >>> tree.paths_to_leaf()
     [['buyer', 'seller']]
     >>> tree.num_of_deals()
@@ -80,8 +80,8 @@ class RecipeTree (NodeMixin):
     [(60, -1), (40, -2), (20, -3), (-30, -4)]
     >>> tree.optimal_trade_GFT()
     114
-    >>> tree.largest_categories()
-    (7, ['producerA', 'producerB'])
+    >>> tree.largest_categories()[-1]
+    ['producerA', 'producerB']
     >>> tree.paths_to_leaf()
     [['buyer', 'producerA'], ['buyer', 'producerB']]
     >>> tree.recipes()
@@ -103,10 +103,10 @@ class RecipeTree (NodeMixin):
     [(60, -1, -2), (40, -3, -4), (20, -10), (-30, -5, -6)]
     >>> tree.optimal_trade_GFT()
     100
-    >>> tree.largest_categories()
-    (7, ['seller', 'producerB'])
-    >>> tree.largest_categories(indices=True)
-    (7, [1, 3])
+    >>> tree.largest_categories()[-1]
+    ['seller', 'producerB']
+    >>> tree.largest_categories(indices=True)[-1]
+    [1, 3]
     >>> tree.paths_to_leaf()
     [['buyer', 'seller'], ['buyer', 'producerA', 'producerB']]
     >>> tree.paths_to_leaf(indices=True)
@@ -123,6 +123,28 @@ class RecipeTree (NodeMixin):
     buyer: all 4 traders selected, price=1
     seller + producerA: 4 out of 6 traders selected
     <BLANKLINE>
+
+    >>> buyer = AgentCategory("buyer", [90,80,70,60,50,40])
+    >>> seller = AgentCategory("seller", [-10,-30,-50])
+    >>> producerA = AgentCategory("producerA", [-1, -3, -5,-7])
+    >>> producerB = AgentCategory("producerB", [-2, -4])
+    >>> categories = [buyer, seller, producerA, producerB]  # Indices: 0, 1, 2, 3
+    >>> tree = RecipeTree(categories, [0, [1, None, 2, [3, None]]])   # buyer -> seller, buyer -> producerA -> producerB
+    >>> tree.combined_values_detailed()
+    [(90, -1, -2), (80, -3, -4), (70, -10), (60, -30), (50, -50)]
+    >>> tree.combined_values()
+    [87, 73, 60, 30, 0]
+    >>> tree.optimal_trade_GFT()
+    250
+    >>> tree.num_of_deals()
+    5
+    >>> tree.largest_categories()[-1]
+    ['buyer']
+
+    >>> producerA.values = [-1, -3, -5, -7, -9, -11, -13]
+    >>> producerB.values = [-2, -4, -6, -8, -10]
+    >>> tree.largest_categories()[-1]
+    ['seller', 'producerA']
     """
 
     def __init__(self, categories:List[AgentCategory], category_indices:List[Any]):
@@ -225,7 +247,7 @@ class RecipeTree (NodeMixin):
             values = self_values
         else:
             children_values = sum([child.combined_values_detailed() for child in self.children], [])
-            logger.debug("children_values: %s",children_values)
+            # logger.debug("children_values: %s",children_values)
             children_values.sort(reverse=True, key=lambda x: sum(x) if (isinstance(x,list) or isinstance(x,tuple)) else x)
             values = [tuple(flatten(t)) for t in zip(self_values, children_values)]
         return values
@@ -253,19 +275,85 @@ class RecipeTree (NodeMixin):
         and these are the categories with the largest number of traders.
 
         :param indices: if True, each element in the path is a node index. Otherwise, it is the node name.
-        :return (largest category size, list of largest categories)
+        :return (largest category size, combined category size, list of largest categories)
+
+        >>> categories = [AgentCategory(str(size), [1]*size) for size in range(10)]  # create categories in various sizes
+        >>> RecipeTree(categories, [6, None]).largest_categories(indices=True)
+        (6, 6, [6])
+        >>> RecipeTree(categories, [6, [8, None]]).largest_categories(indices=True)[-1]
+        [8]
+        >>> RecipeTree(categories, [8, [6, None]]).largest_categories(indices=True)[-1]
+        [8]
+        >>> RecipeTree(categories, [6, [8, [7,None]]]).largest_categories(indices=True)[-1]
+        [8]
+        >>> RecipeTree(categories, [7, [8, [6,None]]]).largest_categories(indices=True)[-1] != [6]
+        True
+        >>> RecipeTree(categories, [7, [8, [5, [6,None]]]]).largest_categories(indices=True)[-1] != [5]
+        True
+        >>> RecipeTree(categories, [6, [3, None, 4, [2,None]]]).largest_categories(indices=True)[-1]
+        [6]
+        >>> RecipeTree(categories, [6, [3, None, 2, [4,None]]]).largest_categories(indices=True)[-1]
+        [6]
+        >>> RecipeTree(categories, [6, [3, None, 7, [5,None]]]).largest_categories(indices=True)[-1]
+        [3, 7]
+        >>> RecipeTree(categories, [6, [3, None, 5, [7,None]]]).largest_categories(indices=True)[-1]
+        [3, 7]
+        >>> RecipeTree(categories, [5, [6, [4,None], 4, [6,None]]]).largest_categories(indices=True)[-1]
+        [6, 6]
+        >>> RecipeTree(categories, [7, [6, [4,None], 4, [6,None]]]).largest_categories(indices=True)[-1]
+        [6, 6]
+        >>> RecipeTree(categories, [8, [6, [4,None], 4, [6,None]]]).largest_categories(indices=True)[-1]
+        [6, 6]
+        >>> RecipeTree(categories, [9, [6, [4,None], 4, [6,None]]]).largest_categories(indices=True)[-1]
+        [9]
+        >>> RecipeTree(categories, [6, [0, None, 6, None]]).largest_categories(indices=True)
+        (6, 6, [0, 6])
+        >>> RecipeTree(categories, [6, [6, None, 0, None]]).largest_categories(indices=True)
+        (6, 6, [6, 0])
+
+        >>> categories = [AgentCategory(str(index), [22,11]) for index in range(10)]  # create categories of the same size
+        >>> tree = RecipeTree(categories, [0, [1, [2, [3, [4, None]]]]])
+        >>> tree.largest_categories(indices=True)[-1]
+        [4]
+        >>> x=categories[4].values.pop()
+        >>> tree.largest_categories(indices=True)[-1]
+        [0]
+        >>> x=categories[0].values.pop()
+        >>> tree.largest_categories(indices=True)[-1]
+        [1]
+        >>> x=categories[1].values.pop()
+        >>> tree.largest_categories(indices=True)[-1]
+        [2]
+        >>> x=categories[2].values.pop()
+        >>> tree.largest_categories(indices=True)[-1]
+        [3]
+        >>> x=categories[3].values.pop()
+        >>> tree.largest_categories(indices=True)[-1]
+        [4]
         """
         self_category_size = self.category.size()
-        children_category_size = 0
-        children_largest_categories = []
-        for child in self.children:
-            (child_category_size, child_largest_categories) = child.largest_categories(indices=indices)
-            children_category_size += child_category_size
-            children_largest_categories += child_largest_categories
-        if self_category_size >=  children_category_size:
-            return (self_category_size, [self.category_index if indices else self.name])
+        self_category_index_or_name = self.category_index if indices else self.name
+        if len(self.children) == 0:
+            largest_category_size = combined_category_size = self_category_size
+            largest_categories = [self_category_index_or_name]
         else:
-            return (children_category_size, children_largest_categories)
+            children_combined_category_size = 0
+            children_largest_category_size = 0
+            children_largest_categories = []
+            for child in self.children:
+                (child_largest_category_size, child_combined_category_size, child_largest_categories) = child.largest_categories(indices=indices)
+                children_largest_category_size = max(children_largest_category_size,child_largest_category_size)
+                children_combined_category_size += child_combined_category_size
+                children_largest_categories += child_largest_categories
+            if children_combined_category_size >= self_category_size:
+                largest_category_size = children_largest_category_size
+                combined_category_size = self_category_size
+                largest_categories = children_largest_categories
+            else:
+                largest_category_size = self_category_size
+                combined_category_size = children_combined_category_size
+                largest_categories = [self_category_index_or_name]
+        return (largest_category_size, combined_category_size, largest_categories)
 
 
     def num_of_deals(self)->int:

@@ -123,11 +123,11 @@ def budget_balanced_ascending_auction(
 
     prices = SimultaneousAscendingPriceVectors(ps_recipes, -MAX_VALUE)
     while True:
-        largest_category_size, indices_of_prices_to_increase = recipe_tree.largest_categories(indices=True)
-        logger.info("Largest category indices are %s and their size is %d", indices_of_prices_to_increase, largest_category_size)
+        largest_category_size, combined_category_size, indices_of_prices_to_increase = recipe_tree.largest_categories(indices=True)
+        logger.info("\nLargest category indices are %s. Largest category size = %d, combined category size = %d", indices_of_prices_to_increase, largest_category_size, combined_category_size)
 
-        if largest_category_size == 0:
-            logger.info("\nThe largest category became empty - no trade!")
+        if combined_category_size == 0:
+            logger.info("\nCombined category size is 0 - no trade!")
             logger.info("  Final price-per-unit vector: %s", prices)
             logger.info(remaining_market)
             return TradeWithMultipleRecipes(remaining_market.categories, recipe_tree, prices.map_category_index_to_price())

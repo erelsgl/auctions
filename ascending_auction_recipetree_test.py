@@ -10,11 +10,19 @@ Since:  2019-08
 from markets import Market
 from agents import AgentCategory, MAX_VALUE
 import ascending_auction_recipetree_protocol, ascending_auction_test, prices
-from ascending_auction_recipetree_protocol import budget_balanced_ascending_auction
 
 import logging
-ascending_auction_recipetree_protocol.logger.setLevel(logging.WARNING)
-prices.logger.setLevel(logging.WARNING)
+
+def show_log():
+    ascending_auction_recipetree_protocol.logger.setLevel(logging.INFO)
+    prices.logger.setLevel(logging.INFO)
+
+def hide_log():
+    ascending_auction_recipetree_protocol.logger.setLevel(logging.WARNING)
+    prices.logger.setLevel(logging.WARNING)
+
+hide_log()
+
 
 from typing import *
 import unittest
@@ -22,27 +30,29 @@ import unittest
 def ps_recipe_to_recipe_struct(ps_recipe:List[int])->List[Any]:
     """
     Converts a single PS recipe to a struct that represents a tree with a single path.
+    The tree is arranged such that the category order is preserved.
 
     >>> ps_recipe_to_recipe_struct([1])
     [0, None]
     >>> ps_recipe_to_recipe_struct([1,1])
-    [0, [1, None]]
+    [1, [0, None]]
     >>> ps_recipe_to_recipe_struct([1,1,1])
-    [0, [1, [2, None]]]
+    [1, [2, [0, None]]]
+    >>> ps_recipe_to_recipe_struct([1,1,1,1])
+    [1, [2, [3, [0, None]]]]
     >>> ps_recipe_to_recipe_struct([1,0,1,1])
-    [0, [2, [3, None]]]
+    [2, [3, [0, None]]]
     """
     result = None
     ps_recipe_reverse = list(enumerate(ps_recipe))
     ps_recipe_reverse.reverse()
+    ps_recipe_reverse = ps_recipe_reverse[-1:] + ps_recipe_reverse[:-1]
     for category_index,category_count in ps_recipe_reverse:
         if category_count>0:
             result = [category_index, result]
     return result
 
 
-
-# @unittest.skip("save time")
 class TestAscendingAuctionWithSingleRecipe(ascending_auction_test.TestAscendingAuction):
     """
     This TestCase class runs all the unittests written for the single-recipe ascending_auction_protocol,
@@ -102,22 +112,22 @@ class TestAscendingAuctionWithTwoRecpies(unittest.TestCase):
             self._check_market(market, ps_recipe_struct, expected_num_of_deals, expected_prices)
 
         check_110_101(buyers=[9,8], sellersA=[-4], sellersB=[-3],
-            expected_num_of_deals=1, expected_prices=[8,-8,-8])
+            expected_num_of_deals=1, expected_prices=[4,-4,-4])
 
         # The following checks are based on the following:
         # check_1_1(buyers=[19,17,15,13,11,9], sellers=[-12,-10,-8,-6,-4,-2],
         #     expected_num_of_deals=4, expected_prices=[11,-11])
 
         check_110_101(buyers=[19,17,15,13,11,9], sellersA=[], sellersB=[-12,-10,-8,-6,-4,-2],
-            expected_num_of_deals=4, expected_prices=[11,None,-11])
+            expected_num_of_deals=4, expected_prices=[10,None,-10])
         check_110_101(buyers=[19,17,15,13,11,9], sellersA=[-12], sellersB=[-10,-8,-6,-4,-2],
-            expected_num_of_deals=4, expected_prices=[11,None,-11])
+            expected_num_of_deals=4, expected_prices=[10,-10,-10])
         check_110_101(buyers=[19,17,15,13,11,9], sellersA=[-4,-2], sellersB=[-12,-10,-8,-6],
-            expected_num_of_deals=4, expected_prices=[11,-11,-11])
+            expected_num_of_deals=4, expected_prices=[10,-10,-10])
         check_110_101(buyers=[19,17,15,13,11,9], sellersA=[-10,-4], sellersB=[-12,-8,-6,-2],
-            expected_num_of_deals=4, expected_prices=[11,-11,-11])
+            expected_num_of_deals=4, expected_prices=[10,-10,-10])
         check_110_101(buyers=[19,17,15,13,11,9], sellersA=[-12,-10,-8,-6,-4,-2], sellersB=[],
-            expected_num_of_deals=4, expected_prices=[11,-11,None])
+            expected_num_of_deals=4, expected_prices=[10,-10,None])
 
 
     def test_market_1100_1011(self):
@@ -139,14 +149,12 @@ class TestAscendingAuctionWithTwoRecpies(unittest.TestCase):
             ps_recipe_struct = [0, [1, None, 2, [3, None]]]
             self._check_market(market, ps_recipe_struct, expected_num_of_deals, expected_prices)
 
-        # ascending_auction_multirecipe_protocol.logger.setLevel(logging.INFO)
-        # prices.logger.setLevel(logging.INFO)
         check_1100_1011(buyers=[19, 17, 15, 13, 11, 9], sellers=[-12, -10, -8, -6, -4, -2], producers=[], movers=[],
-            expected_num_of_deals=4, expected_prices=[11.0, -11.0, None, None])
-        ascending_auction_recipetree_protocol.logger.setLevel(logging.WARNING)
-        prices.logger.setLevel(logging.WARNING)
+            expected_num_of_deals=4, expected_prices=[10.0, -10.0, None, None])
+        # show_log()
         check_1100_1011(buyers=[19, 17, 15, 13, 11, 9], sellers=[], producers=[-6,-5,-4,-3,-2,-1], movers=[-6,-5,-4,-3,-2,-1],
-            expected_num_of_deals=4, expected_prices=[11, None, -5, -6])
+            expected_num_of_deals=4, expected_prices=[11, None, -6, -5])
+        # hide_log()
 
 
 if __name__ == '__main__':

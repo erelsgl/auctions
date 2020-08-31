@@ -25,7 +25,9 @@ class TestAscendingAuction(unittest.TestCase):
     def _check_market(self, market: Market, ps_recipe:List[int], expected_num_of_deals:int, expected_prices:List[float]):
         trade = ascending_auction_protocol.budget_balanced_ascending_auction(market, ps_recipe)
         self.assertEqual(trade.num_of_deals(), expected_num_of_deals)
-        self.assertEqual(trade.prices        , expected_prices      )
+        for i, expected_price in enumerate(expected_prices):
+            if expected_price is not None:
+                self.assertEqual(trade.prices[i], expected_price)
 
 
     ## Unit-tests:
@@ -43,9 +45,9 @@ class TestAscendingAuction(unittest.TestCase):
             self._check_market(market, ps_recipe, expected_num_of_deals, expected_prices)
 
         check_1_1(buyers=[9], sellers=[-4],
-            expected_num_of_deals=0, expected_prices=[9,-9])
+            expected_num_of_deals=0, expected_prices=[None,None])
         check_1_1(buyers=[9,8], sellers=[-4],
-            expected_num_of_deals=0, expected_prices=[9,-9])
+            expected_num_of_deals=0, expected_prices=[None,None])
         check_1_1(buyers=[9], sellers=[-4,-3],
             expected_num_of_deals=1, expected_prices=[4,-4])
         check_1_1(buyers=[9,8], sellers=[-4,-3],
@@ -57,7 +59,7 @@ class TestAscendingAuction(unittest.TestCase):
 
         # ALL NEGATIVE VALUES:
         check_1_1(buyers=[-4,-3], sellers=[-9,-8],
-            expected_num_of_deals=0, expected_prices=[-3,-8])
+            expected_num_of_deals=0, expected_prices=[None,None])
 
         # LARGER EXAMPLE
         check_1_1(buyers=[19,17,15,13,11,9], sellers=[-12,-10,-8,-6,-4,-2],

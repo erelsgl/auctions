@@ -128,7 +128,7 @@ class SimultaneousAscendingPriceVectors:
 
     >>> pv = SimultaneousAscendingPriceVectors([[1, 1, 0, 0], [1, 0, 1, 1]], -10000)
     >>> str(pv)
-    "['[-5000.0, -5000.0, -2500.0, -2500.0]', '[-5000.0, -5000.0, -2500.0, -2500.0]'] None"
+    '[-10000.0, -20000.0, -10000.0, -10000.0] None'
     """
     def __init__(self, ps_recipes: List[List[int]], initial_price_sum:float):
         if len(ps_recipes)==0:
@@ -158,7 +158,7 @@ class SimultaneousAscendingPriceVectors:
         """
         >>> pv = SimultaneousAscendingPriceVectors([[1, 1, 0, 0], [1, 0, 1, 1]], -10000)
         >>> pv.map_category_index_to_price()
-        [-5000.0, -5000.0, -2500.0, -2500.0]
+        [-10000.0, -20000.0, -10000.0, -10000.0]
         >>> pv.increase_prices ([(1,10,"seller"), (2,10,"half-seller-A")])
         >>> pv.map_category_index_to_price()[2]
         10.0
@@ -182,13 +182,13 @@ class SimultaneousAscendingPriceVectors:
 
         >>> pv = SimultaneousAscendingPriceVectors([[1, 1, 0, 0], [1, 0, 1, 1]], -10000)
         >>> str(pv)
-        '[-5000.0, -5000.0, -2500.0, -2500.0] None'
+        '[-10000.0, -20000.0, -10000.0, -10000.0] None'
         >>> pv.increase_prices ([(1,-80, "seller"), (2,-80,"halfseller-A")])
         >>> str(pv)
-        '[-5000.0, -2580.0, -80.0, -2500.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
+        '[-10000.0, -10080.0, -80.0, -10000.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
         >>> pv.increase_prices ([(1,-80, "seller"), (3,-80,"halfseller-B")])
         >>> str(pv)
-        '[-5000.0, -160.0, -80.0, -80.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
+        '[-10000.0, -160.0, -80.0, -80.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
         >>> pv.increase_prices ([(0,100, "buyer")])
         >>> str(pv)
         '[100.0, -160.0, -80.0, -80.0] PriceStatus.STOPPED_AT_AGENT_VALUE'
@@ -237,36 +237,40 @@ class SimultaneousAscendingPriceVectors:
 
 
 
-def calculate_initial_prices(ps_recipes:List[int], initial_price_sum:float)->List[float]:
+def calculate_initial_prices(ps_recipes:List[int], max_price_per_category:float)->List[float]:
     """
+    Calculate a vector of initial prices such that
+       (a) the sum of prices in all recipes is the same
+       (b) the price in each category is at most max_price_per_category (a negative number).
     :param ps_recipes:  A list of PS recipes.
-    :param initial_price_sum: The sum that the price-vectors for all recipes should have.
+    :param max_price_per_category: a negative number indicating the maximum price per category
+           (should be smaller than all valuations of traders in this category).
     :return: A vector of initial prices.
 
-    >>> p = calculate_initial_prices([[1,1,0,0],[1,0,1,1]], -10000)
+    >>> p = calculate_initial_prices([[1,1,0,0],[1,0,1,1]], -100)
     >>> p[0]
-    -5000.0
+    -100.0
     >>> p[1]
-    -5000.0
+    -200.0
     >>> p[2]
-    -2500.0
+    -100.0
     >>> p[3]
-    -2500.0
+    -100.0
     """
     num_recipes = len(ps_recipes)
     num_categories = len(ps_recipes[0])
-    max_price = initial_price_sum/num_categories
 
     from scipy.optimize import linprog
-    result = linprog(  # variables: price_heder, m, price_salon
-        [-1]*num_categories,  # Minimize the sum of prices
-        A_eq=ps_recipes,
-        b_eq=[initial_price_sum]*num_recipes,  # The sum of every recipe must be the same
-        bounds=[(None, max_price)]*num_categories,
+    # variables: 0 (the sum);  1, ..., num_categories-1 [the prices)
+    result = linprog(
+        [-1] + [0]*num_categories,  # Maximize the (negative) sum of prices
+        A_eq=[ [-1] + recipe for recipe in ps_recipes],  # The sum of prices should equal the sum in each recipe
+        b_eq=[0]*num_recipes,  # The sum of every recipe minus the sum-variable must be 0
+        bounds=[(None, max_price_per_category)]*(num_categories+1),
         method="revised simplex"
     )
     if result.status==0:
-        return list(result.x)
+        return list(result.x[1:])
     else:
         raise ValueError("Cannot determine initial prices: "+result.message)
 
