@@ -7,6 +7,7 @@ for a multi-lateral market with two buyers per three sellers (recipe: 2,3)
 Author: Erel Segal-Halevi
 Since:  2019-08
 """
+import sys, os; sys.path.insert(0, os.path.abspath('..'))
 
 from markets import Market
 from agents import AgentCategory

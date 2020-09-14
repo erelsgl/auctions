@@ -18,6 +18,8 @@ Author: Erel Segal-Halevi
 Since:  2019-09
 """
 
+import sys, os; sys.path.insert(0, os.path.abspath('..'))
+
 from markets import Market
 from agents import AgentCategory
 import trade_reduction_protocol

@@ -7,6 +7,7 @@ for a multi-lateral market with buyers, mediators and sellers (recipe: 1,1,1)
 Author: Erel Segal-Halevi
 Since:  2019-08
 """
+import sys, os; sys.path.insert(0, os.path.abspath('..'))
 
 from markets import Market
 from agents import AgentCategory

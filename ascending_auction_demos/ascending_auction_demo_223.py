@@ -6,6 +6,7 @@ Additional examples of a multiple-clock strongly-budget-balanced ascending aucti
 Author: Erel Segal-Halevi
 Since:  2019-11
 """
+import sys, os; sys.path.insert(0, os.path.abspath('..'))
 
 from markets import Market
 from agents import AgentCategory

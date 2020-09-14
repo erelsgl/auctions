@@ -57,6 +57,8 @@ prices.logger.setLevel(logging.INFO)
 # ])
 # print(budget_balanced_ascending_auction(market, recipes_1100_1011))
 
+import sys, os; sys.path.insert(0, os.path.abspath('..'))
+
 
 print("\n\n###### TEST MULTI RECIPE AUCTION - 4 PATHS")
 
