@@ -2,10 +2,10 @@
 
 """
 Demonstration of a multiple-clock strongly-budget-balanced ascending auction
-for a multi-lateral market with one buyer per two sellers (recipe: 1,2)
+for a multi-lateral market with a recipe tree
 
 Author: Erel Segal-Halevi
-Since:  2019-08
+Since:  2020-08
 """
 
 from markets import Market
