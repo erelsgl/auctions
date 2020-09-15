@@ -252,14 +252,18 @@ class RecipeTree (NodeMixin):
             values = [tuple(flatten(t)) for t in zip(self_values, children_values)]
         return values
 
-    def optimal_trade(self)->(list,float):
+    def optimal_trade(self)->(list,int,float):
         """
-        :return: a tuple: first element is the optimal trade, second element is the optimal GFT.
+        :return: a tuple:
+        * first element is the list of deals in the optimal trade;
+        * second element is the optimal num of deals (k);
+        * third is the optimal GFT.
         """
         values = self.combined_values_detailed()
         optimal_trade_values = [t for t in values if sum(t)>0]
+        optimal_trade_count = len(optimal_trade_values)
         optimal_trade_values_GFT = sum(flatten(optimal_trade_values))
-        return (optimal_trade_values, optimal_trade_values_GFT)
+        return (optimal_trade_values, optimal_trade_count, optimal_trade_values_GFT)
 
     def optimal_trade_GFT(self) -> int:
         """

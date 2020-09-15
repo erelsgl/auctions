@@ -20,11 +20,21 @@ import logging
 ascending_auction_recipetree_protocol.logger.setLevel(logging.INFO)
 prices.logger.setLevel(logging.INFO)
 
-print("\n\n###### TEST MULTI RECIPE AUCTION WITH A SINGLE PATH: [1,1,1]")
-market = Market([
-    AgentCategory("buyer", [9, 8]),
-    AgentCategory("sellerA", [-1, -2]),
-    AgentCategory("sellerB", [-4, -3]),
-])
+recipes_11 = [1, [0, None]]     # buyer <- seller
 recipes_111 = [1, [2, [0, None]]] # buyer <- sellerB <- sellerA; [1,1,1]
-print(budget_balanced_ascending_auction(market, recipes_111))
+
+
+print("\n\n###### TEST MULTI RECIPE AUCTION WITH A SINGLE PATH: [1,1], WITH k DEALS")
+market = Market([
+    AgentCategory("buyer",    [9, 7, 5]),
+    AgentCategory("seller", [-2, -4, -6]),
+])
+print(budget_balanced_ascending_auction(market, recipes_11))
+
+# print("\n\n###### TEST MULTI RECIPE AUCTION WITH A SINGLE PATH: [1,1,1]")
+# market = Market([
+#     AgentCategory("buyer", [9, 8]),
+#     AgentCategory("sellerA", [-1, -2]),
+#     AgentCategory("sellerB", [-4, -3]),
+# ])
+# print(budget_balanced_ascending_auction(market, recipes_111))
