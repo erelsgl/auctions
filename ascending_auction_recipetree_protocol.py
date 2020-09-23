@@ -75,7 +75,7 @@ def budget_balanced_ascending_auction(
 
     :return: Trade object, representing the trade and prices.
 
-    >>> logger.setLevel(logging.INFO)
+    >>> logger.setLevel(logging.WARNING)
     >>> # ONE BUYER, ONE SELLER
     >>> recipe_11 = [0, [1, None]]
     >>>
@@ -87,22 +87,25 @@ def budget_balanced_ascending_auction(
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0, 8.0], seller: [-4.0]]
-    No trade
+    seller: 1 potential deals, price=-8.0
+    buyer: all 1 traders selected, price=8.0
+    seller: all 1 traders selected
+    1 deals overall
 
     >>> logger.setLevel(logging.WARNING)
     >>> market = Market([AgentCategory("buyer", [9.]), AgentCategory("seller", [-4.,-3.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0], seller: [-3.0, -4.0]]
-    seller: 1 potential deals, price=-4.0
-    buyer: all 1 traders selected, price=4.0
-    seller: all 1 traders selected
+    No trade
 
+    >>> logger.setLevel(logging.WARNING)
     >>> market = Market([AgentCategory("buyer", [9.,8.]),  AgentCategory("seller", [-4.,-3.])])
     >>> print(market); print(budget_balanced_ascending_auction(market, recipe_11))
     Traders: [buyer: [9.0, 8.0], seller: [-3.0, -4.0]]
-    seller: 2 potential deals, price=-8.0
-    buyer: all 1 traders selected, price=8.0
-    seller: 1 out of 2 traders selected
+    seller: 1 potential deals, price=-4.0
+    buyer: 1 out of 2 traders selected, price=4.0
+    seller: all 1 traders selected
+    1 deals overall
     """
     logger.info("\n#### Multi-Recipe Budget-Balanced Ascending Auction\n")
     logger.info(market)
