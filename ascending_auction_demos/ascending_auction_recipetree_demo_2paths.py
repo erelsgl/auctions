@@ -41,14 +41,14 @@ recipes_11100_10011 = [0, [1, [2, None], 3, [4, None]]]
 
 #
 #
-# print("\n\n###### TEST TWO DIFFERENT RECIPES: [1,1,0,0] [1,0,1,1]")
-# market = Market([
-#     AgentCategory("buyer", [17, 14, 13, 9, 6, 2]),
-#     AgentCategory("seller", [-4, -5, -8, -10]),
-#     AgentCategory("producerA", [-1, -3, -5]),
-#     AgentCategory("producerB", [-1, -4, -6]),
-# ])
-# print(budget_balanced_ascending_auction(market, recipes_1100_1011))
+print("\n\n###### TEST TWO DIFFERENT RECIPES: [1,1,0,0] [1,0,1,1]. PAPER EXAMPLE")
+market = Market([
+    AgentCategory("buyer", [17, 14, 13, 9, 6, 2]),
+    AgentCategory("seller", [-4, -5, -8, -10]),
+    AgentCategory("producerA", [-1, -3, -5]),
+    AgentCategory("producerB", [-1, -4, -6]),
+])
+print(budget_balanced_ascending_auction(market, recipes_1100_1011))
 #
 #
 # print("\n\n###### TEST TWO DIFFERENT RECIPES - RICA'S EXAMPLE")
@@ -124,14 +124,46 @@ recipes_11100_10011 = [0, [1, [2, None], 3, [4, None]]]
 # print(budget_balanced_ascending_auction(market, recipes_11100_10011))
 
 
+#
+# print("\n\n###### GFT CHALLENGE 1")
+# market = Market([
+#     AgentCategory("buyer", [300, 200, 100]),
+#     AgentCategory("seller1", [-6, -5]),
+#     AgentCategory("seller2", [-6, -5]),
+#     AgentCategory("producer1", [-98,-97]),
+#     AgentCategory("producer2", [-1,-2]),
+# ])
+# print(budget_balanced_ascending_auction(market, recipes_11100_10011))
+#
 
-print("\n\n###### GFT CHALLENGE")
-market = Market([
-    AgentCategory("buyer", [300, 200, 100]),
-    AgentCategory("seller1", [-6, -5]),
-    AgentCategory("seller2", [-6, -5]),
-    AgentCategory("producer1", [-98,-97]),
-    AgentCategory("producer2", [-1,-2]),
-])
-print(budget_balanced_ascending_auction(market, recipes_11100_10011))
+
+# print("\n\n###### GFT CHALLENGE - EASY")
+# market = Market([
+#     AgentCategory("buyer", [400,300,200,100]),  # k = 4
+#     AgentCategory("seller1", [-5, -7, -11]),     # k = 3
+#     AgentCategory("producer1", [-9, -13, -15]),  # k = 1
+# ])
+# print(budget_balanced_ascending_auction(market, recipes_110_101))
+#
+#
+# print("\n\n###### GFT CHALLENGE - MEDIUM")
+# market = Market([
+#     AgentCategory("buyer", [400,300,200,100]),  # k = 4
+#     AgentCategory("seller1", [-5, -7, -11]),     # k = 3
+#     AgentCategory("seller2", [-5, -7, -11]),         # k = 3
+#     AgentCategory("producer1", [-9, -13, -15]),          # k = 1
+#     AgentCategory("producer2", [-9, -13, -15]),        # k = 1
+# ])
+# print(budget_balanced_ascending_auction(market, recipes_11100_10011))
+#
+#
+# print("\n\n###### GFT CHALLENGE - HARD")
+# market = Market([
+#     AgentCategory("buyer", [400,300,200,100]),     # k = 4
+#     AgentCategory("seller1", [-5, -7, -11]),     # k = 3
+#     AgentCategory("seller2", [-5, -7, -11]),         # k = 3
+#     AgentCategory("producer1", [-9, -13, -15]),          # k = 1
+#     AgentCategory("producer2", [-3, -10, -15]),        # k = 1
+# ])
+# print(budget_balanced_ascending_auction(market, recipes_11100_10011))
 
